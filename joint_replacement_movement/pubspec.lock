@@ -115,10 +115,9 @@ packages:
   health:
     dependency: "direct main"
     description:
-      name: health
-      sha256: b2eea6fbae995800d2c6831359618525deb9ec148e2b638a133bf87c3ef1d5cf
-      url: "https://pub.dev"
-    source: hosted
+      path: "../health"
+      relative: true
+    source: path
     version: "8.0.0"
   intl:
     dependency: transitive

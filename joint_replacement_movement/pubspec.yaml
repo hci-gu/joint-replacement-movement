@@ -12,9 +12,10 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.2
-  health: ^8.0.0
   permission_handler: ^10.2.0
   device_info_plus: ^9.0.0
+  health: 
+    path: ../health
 
 dev_dependencies:
   flutter_test:
