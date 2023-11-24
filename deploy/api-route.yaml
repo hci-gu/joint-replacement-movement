@@ -1,0 +1,19 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: jr-movement-api
+  namespace: appademin
+  annotations:
+    kubernetes.io/tls-acme: "true"
+spec:
+  host: jr-movement-api.prod.appadem.in
+  to:
+    kind: Service
+    name: jr-movement-api-service
+    weight: 100
+  port:
+    targetPort: 4000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

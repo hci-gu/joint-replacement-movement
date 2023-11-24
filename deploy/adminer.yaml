@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jrm-adminer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jrm-adminer
+  template:
+    metadata:
+      labels:
+        app: jrm-adminer
+    spec:
+      containers:
+        - name: jrm-adminer
+          image: 'adminer:latest'
+          ports:
+            - containerPort: 8080
+              name: web
+              protocol: TCP
+          imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jrm-adminer-service
+spec:
+  selector:
+    app: jrm-adminer
+  ports:
+    - protocol: TCP
+      port: 8080
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: jr-adminer
+  namespace: appademin
+  annotations:
+    kubernetes.io/tls-acme: "true"
+spec:
+  host: jr-movement-adminer.prod.appadem.in
+  to:
+    kind: Service
+    name: jrm-adminer-service
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

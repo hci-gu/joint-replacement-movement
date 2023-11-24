@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jr-movement-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jr-movement-api
+  template:
+    metadata:
+      labels:
+        app: jr-movement-api
+    spec:
+      containers:
+        - name: jr-movement-api
+          image: 'appademin/jr-movement-api:0.0.1'
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4000
+              name: web
+              protocol: TCP
+          env:
+          - name: NODE_ENV
+            value: production
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: jrm-postgres-secret
+                key: postgres-user
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: jrm-postgres-secret
+                key: postgres-password
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: jrm-postgres-configmap
+                key: postgres-host
+          - name: DB
+            valueFrom:
+              configMapKeyRef:
+                name: jrm-postgres-configmap
+                key: postgres-dbname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jr-movement-api-service
+spec:
+  selector:
+    app: jr-movement-api
+  ports:
+    - protocol: TCP
+      port: 4000

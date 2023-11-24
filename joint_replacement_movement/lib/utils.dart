@@ -1,4 +1,5 @@
 import 'package:health/health.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// List of data types available on iOS
 const List<HealthDataType> dataTypesIOS = [

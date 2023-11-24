@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: jrm-postgres-configmap
+data:
+    postgres-host: jrm-postgres-service:5432
+    postgres-dbname: jr-movement
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jrm-postgres
+  labels:
+    app: jrm-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jrm-postgres
+  template:
+    metadata:
+      labels:
+        app: jrm-postgres
+    spec:
+      volumes:
+      - name: jrm-postgres-persistent-storage
+        persistentVolumeClaim:
+          claimName: jrm-postgres-pv-claim
+      containers:
+      - name: jrm-postgres
+        image: postgres:latest
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: jrm-postgres-persistent-storage
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: jrm-postgres-secret
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jrm-postgres-secret
+              key: postgres-password
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: jrm-postgres-configmap
+              key: postgres-host
+        - name: POSTGRES_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              name: jrm-postgres-configmap
+              key: postgres-dbname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jrm-postgres-service
+spec:
+  selector:
+    app: jrm-postgres
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

@@ -49,6 +49,12 @@ enum HealthDataType {
   HEADACHE_SEVERE,
   HEADACHE_UNSPECIFIED,
 
+  WALKING_ASYMMETRY_PERCENTAGE,
+  WALKING_DOUBLE_SUPPORT_PERCENTAGE,
+  WALKING_STEADINESS,
+  WALKING_SPEED,
+  WALKING_STEP_LENGTH,
+
   // Heart Rate events (specific to Apple Watch)
   HIGH_HEART_RATE_EVENT,
   LOW_HEART_RATE_EVENT,
@@ -112,6 +118,12 @@ const List<HealthDataType> _dataTypeKeysIOS = [
   HealthDataType.HEADACHE_SEVERE,
   HealthDataType.HEADACHE_UNSPECIFIED,
   HealthDataType.ELECTROCARDIOGRAM,
+  // walking
+  HealthDataType.WALKING_ASYMMETRY_PERCENTAGE,
+  HealthDataType.WALKING_DOUBLE_SUPPORT_PERCENTAGE,
+  HealthDataType.WALKING_STEADINESS,
+  HealthDataType.WALKING_SPEED,
+  HealthDataType.WALKING_STEP_LENGTH,
 ];
 
 /// List of data types available on Android
@@ -203,6 +215,12 @@ const Map<HealthDataType, HealthDataUnit> _dataTypeToUnit = {
   HealthDataType.IRREGULAR_HEART_RATE_EVENT: HealthDataUnit.NO_UNIT,
   HealthDataType.HEART_RATE_VARIABILITY_SDNN: HealthDataUnit.MILLISECOND,
   HealthDataType.ELECTROCARDIOGRAM: HealthDataUnit.VOLT,
+
+  HealthDataType.WALKING_ASYMMETRY_PERCENTAGE: HealthDataUnit.PERCENT,
+  HealthDataType.WALKING_DOUBLE_SUPPORT_PERCENTAGE: HealthDataUnit.PERCENT,
+  HealthDataType.WALKING_STEADINESS: HealthDataUnit.PERCENT,
+  HealthDataType.WALKING_STEP_LENGTH: HealthDataUnit.METER,
+  HealthDataType.WALKING_SPEED: HealthDataUnit.METERS_PER_SECOND,
 };
 
 const PlatformTypeJsonValue = {
@@ -289,6 +307,9 @@ enum HealthDataUnit {
   MILLIGRAM_PER_DECILITER,
   UNKNOWN_UNIT,
   NO_UNIT,
+
+  // WALKING
+  METERS_PER_SECOND
 }
 
 /// List of [HealthWorkoutActivityType]s.

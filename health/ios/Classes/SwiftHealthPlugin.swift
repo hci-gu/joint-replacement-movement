@@ -62,6 +62,13 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
   let HEADACHE_SEVERE = "HEADACHE_SEVERE"
   let ELECTROCARDIOGRAM = "ELECTROCARDIOGRAM"
 
+  // WALKING
+  let WALKING_ASYMMETRY_PERCENTAGE = "WALKING_ASYMMETRY_PERCENTAGE"
+  let WALKING_DOUBLE_SUPPORT_PERCENTAGE = "WALKING_DOUBLE_SUPPORT_PERCENTAGE"
+  let WALKING_STEADINESS = "WALKING_STEADINESS"
+  let WALKING_SPEED = "WALKING_SPEED"
+  let WALKING_STEP_LENGTH = "WALKING_STEP_LENGTH"
+
   // Health Unit types
   // MOLE_UNIT_WITH_MOLAR_MASS, // requires molar mass input - not supported yet
   // MOLE_UNIT_WITH_PREFIX_MOLAR_MASS, // requires molar mass & prefix input - not supported yet
@@ -113,6 +120,8 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
   let MILLIGRAM_PER_DECILITER = "MILLIGRAM_PER_DECILITER"
   let UNKNOWN_UNIT = "UNKNOWN_UNIT"
   let NO_UNIT = "NO_UNIT"
+
+  let METERS_PER_SECOND = "METERS_PER_SECOND"
 
   struct PluginError: Error {
     let message: String
@@ -469,6 +478,56 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
     HKHealthStore().execute(deleteQuery)
   }
 
+  func getAllStepsData(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let arguments = call.arguments as? NSDictionary
+        let dataTypeKey = (arguments?["dataTypeKey"] as? String) ?? "DEFAULT"
+        let startDate = (arguments?["startDate"] as? NSNumber) ?? 0
+        let endDate = (arguments?["endDate"] as? NSNumber) ?? 0
+
+        // Convert dates from milliseconds to Date()
+        let dateFrom = Date(timeIntervalSince1970: startDate.doubleValue / 1000)
+        let dateTo = Date(timeIntervalSince1970: endDate.doubleValue / 1000)
+
+        let dataType = dataTypeLookUp(key: dataTypeKey)
+        let predicate = HKQuery.predicateForSamples(withStart: dateFrom, end: dateTo, options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: true)
+
+        let interval = NSDateComponents()
+        interval.minute = 15
+
+        guard let quantityType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount) else {
+            fatalError("*** Unable to create a step count type ***")
+        }
+
+        let query = HKStatisticsCollectionQuery(
+          quantityType: quantityType,
+                                                                quantitySamplePredicate: predicate,
+                                                                    options: .cumulativeSum,
+                                                                    anchorDate: dateFrom,
+                                                                    intervalComponents: interval as DateComponents)
+        query.initialResultsHandler = {
+            query, results, error in
+            guard let statsCollection = results else {
+                // Perform proper error handling here
+                fatalError("*** An error occurred while calculating the statistics: \(error?.localizedDescription) ***")
+            }
+            print("FROM: \(dateFrom), TO: \(dateTo)")
+            result(statsCollection.statistics().map {stat -> NSDictionary in
+                if let quantity = stat.sumQuantity() {
+                    let value = quantity.doubleValue(for: HKUnit.count())
+                    return [
+                        "uuid": UUID.init().uuidString,
+                        "value": value,
+                        "date_from": Int(stat.startDate.timeIntervalSince1970 * 1000),
+                        "date_to": Int(stat.endDate.timeIntervalSince1970 * 1000),
+                    ]
+                }
+                return [:]
+            })
+        }
+        HKHealthStore().execute(query);
+    }
+
   func getData(call: FlutterMethodCall, result: @escaping FlutterResult) {
     let arguments = call.arguments as? NSDictionary
     let dataTypeKey = (arguments?["dataTypeKey"] as? String)!
@@ -766,6 +825,7 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
     unitDict[BEATS_PER_MINUTE] = HKUnit.init(from: "count/min")
     unitDict[RESPIRATIONS_PER_MINUTE] = HKUnit.init(from: "count/min")
     unitDict[MILLIGRAM_PER_DECILITER] = HKUnit.init(from: "mg/dL")
+    unitDict[METERS_PER_SECOND] = HKUnit(from: "m/s")
     unitDict[UNKNOWN_UNIT] = HKUnit.init(from: "")
     unitDict[NO_UNIT] = HKUnit.init(from: "")
 
@@ -951,6 +1011,15 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
       workoutActivityTypeMap["SOCIAL_DANCE"] = HKWorkoutActivityType.socialDance
       workoutActivityTypeMap["PICKLEBALL"] = HKWorkoutActivityType.pickleball
       workoutActivityTypeMap["COOLDOWN"] = HKWorkoutActivityType.cooldown
+
+      dataTypesDict[WALKING_SPEED] = HKSampleType.quantityType(forIdentifier: .walkingSpeed)!
+      dataTypesDict[WALKING_STEP_LENGTH] = HKSampleType.quantityType(forIdentifier: .walkingStepLength)!
+      dataTypesDict[WALKING_DOUBLE_SUPPORT_PERCENTAGE] = HKSampleType.quantityType(forIdentifier: .walkingDoubleSupportPercentage)!
+      dataTypesDict[WALKING_ASYMMETRY_PERCENTAGE] = HKSampleType.quantityType(forIdentifier: .walkingAsymmetryPercentage)!
+    }
+
+    if #available(iOS 15.0, *) {
+      dataTypesDict[WALKING_STEADINESS] = HKSampleType.quantityType(forIdentifier: .appleWalkingSteadiness)!
     }
 
     // Concatenate heart events, headache and health data types (both may be empty)
