@@ -35,7 +35,7 @@ const pool = new Pool({
 })
 
 // bodyparser and allow max size
-app.use(bodyParser.json({ limit: '50mb' }))
+app.use(bodyParser.json({ limit: '500mb' }))
 
 async function processInBatches(table, personalId, data, batchSize) {
   for (let i = 0; i < data.length; i += batchSize) {
