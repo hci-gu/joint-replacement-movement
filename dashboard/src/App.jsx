@@ -33,7 +33,6 @@ const _formatTitle = (title) => {
 
 const Users = () => {
   const users = useAtomValue(usersAtom)
-  const location = useLocation()
 
   return (
     <Container>
@@ -78,9 +77,11 @@ const Users = () => {
 const App = () => {
   return (
     <AppShell header={{ height: 60 }}>
-      <AppShell.Header p={8}>
+      <AppShell.Header p={12}>
         <Flex align="center" justify="space-between">
-          <Text size="xl">Dashboard</Text>
+          <Text size="xl" fw={500}>
+            Dashboard
+          </Text>
           <DarkModeToggle />
         </Flex>
       </AppShell.Header>

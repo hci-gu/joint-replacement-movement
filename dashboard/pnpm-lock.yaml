@@ -4,10 +4,12 @@ specifiers:
   '@emotion/react': ^11.11.1
   '@emotion/styled': ^11.11.0
   '@mantine/core': ^7.3.1
+  '@mantine/dates': ^7.4.2
   '@mantine/hooks': ^7.3.1
   '@tabler/icons-react': ^2.44.0
   '@vitejs/plugin-react': ^4.2.1
   axios: ^1.6.2
+  dayjs: ^1.11.10
   fast-deep-equal: ^3.1.3
   jotai: ^2.6.0
   react: ^18.2.0
@@ -21,9 +23,11 @@ dependencies:
   '@emotion/react': 11.11.1_react@18.2.0
   '@emotion/styled': 11.11.0_xo5t6f4ryb2nvjgwj2cxjowrye
   '@mantine/core': 7.3.1_4rp5bwgmsl3p2y74xowgazjd2q
+  '@mantine/dates': 7.4.2_oaix2recfiflyen5w25awixtfy
   '@mantine/hooks': 7.3.1_react@18.2.0
   '@tabler/icons-react': 2.44.0_react@18.2.0
   axios: 1.6.2
+  dayjs: 1.11.10
   fast-deep-equal: 3.1.3
   jotai: 2.6.0_react@18.2.0
   react: 18.2.0
@@ -666,6 +670,23 @@ packages:
       - '@types/react'
     dev: false
 
+  /@mantine/dates/7.4.2_oaix2recfiflyen5w25awixtfy:
+    resolution: {integrity: sha512-nv0QuUEJh/ypFOjRLW+vZeuCCj3syxX7iI7Oz3/P7W6o5zNJdi/QUfkqiLTu0L2ckDIkDATxpHgUwH1k/GLOPA==}
+    peerDependencies:
+      '@mantine/core': 7.4.2
+      '@mantine/hooks': 7.4.2
+      dayjs: '>=1.0.0'
+      react: ^18.2.0
+      react-dom: ^18.2.0
+    dependencies:
+      '@mantine/core': 7.3.1_4rp5bwgmsl3p2y74xowgazjd2q
+      '@mantine/hooks': 7.3.1_react@18.2.0
+      clsx: 2.0.0
+      dayjs: 1.11.10
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
   /@mantine/hooks/7.3.1_react@18.2.0:
     resolution: {integrity: sha512-pbbqPpVou/13xbt/dYYNphPpbDE2XfPN9mUHBoGZgv9FM8IkziNMIOo4PtNlqqqYsyp1lfQIQVKKT+DLZt1C8Q==}
     peerDependencies:
@@ -1059,6 +1080,10 @@ packages:
   /d3-timer/3.0.1:
     resolution: {integrity: sha512-ndfJ/JxxMd3nw31uyKoY2naivF+r29V+Lc0svZxe1JvvIRmi8hUsrMvdOwgS1o6uBHmiz91geQ0ylPP0aj1VUA==}
     engines: {node: '>=12'}
+    dev: false
+
+  /dayjs/1.11.10:
+    resolution: {integrity: sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==}
     dev: false
 
   /debug/4.3.4:

@@ -1,4 +1,5 @@
 import '@mantine/core/styles.css'
+import '@mantine/dates/styles.css'
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { MantineProvider } from '@mantine/core'

@@ -16,6 +16,7 @@ export const usersAtom = atomWithDefault(async (get, { signal }) => {
 })
 
 export const groupByAtom = atom('day')
+export const dateRangeAtom = atom([null, new Date()])
 
 const pad = (n) => (n < 10 ? `0${n}` : n)
 
@@ -125,14 +126,19 @@ export const stepsAtom = atomFamily(
     atom(async (get) => {
       const data = await get(dataAtom({ id, type: 'steps' }))
       const groupBy = get(groupByAtom)
+      const [from, to] = get(dateRangeAtom)
 
-      return groupStepsByInterval(
-        data.reverse().map((d) => ({
-          value: parseFloat(d.value),
-          date: new Date(d.date_from),
-        })),
-        groupBy
-      )
+      const mappedData = data.reverse().map((d) => ({
+        value: parseFloat(d.value),
+        date: new Date(d.date_from),
+      }))
+
+      const filteredData =
+        from && to
+          ? mappedData.filter((d) => d.date >= from && d.date <= to)
+          : mappedData
+
+      return groupStepsByInterval(filteredData, groupBy)
     }),
   deepEqual
 )
@@ -141,16 +147,21 @@ export const formattedDataAtom = atomFamily(
   ({ id, type }) =>
     atom(async (get) => {
       if (type == 'steps') return get(stepsAtom(id))
-
       const data = await get(dataAtom({ id, type }))
       const groupBy = get(groupByAtom)
-      const grouped = groupDataByInterval(
-        data.reverse().map((d) => ({
-          value: parseFloat(d.value),
-          date: new Date(d.date_from),
-        })),
-        groupBy
-      )
+      const [from, to] = get(dateRangeAtom)
+
+      const mappedData = data.reverse().map((d) => ({
+        value: parseFloat(d.value),
+        date: new Date(d.date_from),
+      }))
+
+      const filteredData =
+        from && to
+          ? mappedData.filter((d) => d.date >= from && d.date <= to)
+          : mappedData
+
+      const grouped = groupDataByInterval(filteredData, groupBy)
 
       return grouped.sort((a, b) => a.sort - b.sort)
     }),

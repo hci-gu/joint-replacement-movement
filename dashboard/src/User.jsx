@@ -19,6 +19,7 @@ import {
 import { useAtom, useAtomValue } from 'jotai'
 import {
   dataAtom,
+  dateRangeAtom,
   formattedDataAtom,
   groupByAtom,
   stepsAtom,
@@ -35,6 +36,7 @@ import {
   YAxis,
 } from 'recharts'
 import { suspend } from 'suspend-react'
+import { DateInput } from '@mantine/dates'
 // import { Header, Navbar } from '@mantine/core'
 
 const Container = styled.div`
@@ -91,31 +93,45 @@ const DataType = ({ type, id }) => {
   )
 }
 
-const Steps = ({ id }) => {
-  const data = useAtomValue(stepsAtom(id))
-
-  return (
-    <ResponsiveContainer height={200} style={{ marginTop: 16 }}>
-      <LineChart width={'100%'} height={'100%'} data={data}>
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} />
-        {/* <CartesianGrid stroke="#ccc" /> */}
-        {/* <Line type="monotone" dataKey="pv" stroke="#82ca9d" /> */}
-      </LineChart>
-    </ResponsiveContainer>
-  )
-}
-
 const GroupBySelect = () => {
   const [groupBy, setGroupBy] = useAtom(groupByAtom)
 
   return (
     <SegmentedControl
+      h={40}
       data={['day', 'week', 'month', 'year']}
       value={groupBy}
       onChange={setGroupBy}
     />
+  )
+}
+
+const DateRangeSelect = () => {
+  const [dateRange, setDateRange] = useAtom(dateRangeAtom)
+
+  const onChange = (value, index) => {
+    setDateRange((prev) => {
+      const next = [...prev]
+      next[index] = value
+      return next
+    })
+  }
+
+  return (
+    <Flex gap="sm">
+      <DateInput
+        value={dateRange[0]}
+        onChange={(val) => onChange(val, 0)}
+        label="From"
+        placeholder="Select date"
+      />
+      <DateInput
+        value={dateRange[1]}
+        onChange={(val) => onChange(val, 1)}
+        label="To"
+        placeholder="Select date"
+      />
+    </Flex>
   )
 }
 
@@ -129,7 +145,10 @@ const User = () => {
           <Anchor href="/">Home</Anchor>
           <Anchor href={`/user/${id}`}>{id}</Anchor>
         </Breadcrumbs>
-        <GroupBySelect />
+        <Flex gap="sm" justify="center" align="end">
+          <DateRangeSelect />
+          <GroupBySelect />
+        </Flex>
       </Flex>
       <Space h="lg" />
       <SimpleGrid cols={1}>
