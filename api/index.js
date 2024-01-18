@@ -8,6 +8,17 @@ const app = express()
 app.use(cors())
 const port = 4000
 
+const API_KEY = process.env.API_KEY
+
+const authMiddleware = (req, res, next) => {
+  const { authorization } = req.headers
+  if (authorization !== API_KEY) {
+    res.status(401).send('Unauthorized')
+    return
+  }
+  next()
+}
+
 const tables = [
   'steps',
   'walking_speed',
@@ -130,7 +141,7 @@ app.post('/data', async (req, res) => {
   }
 })
 
-app.get('/users', async (req, res) => {
+app.get('/users', authMiddleware, async (req, res) => {
   let users = {}
   for (const table of tables) {
     const queryText = `SELECT DISTINCT personal_id FROM ${table}`
@@ -177,7 +188,7 @@ app.get('/users', async (req, res) => {
   res.send(users)
 })
 
-app.get('/:type', async (req, res) => {
+app.get('/:type', authMiddleware, async (req, res) => {
   try {
     const { type } = req.params
 
@@ -197,7 +208,7 @@ app.get('/:type', async (req, res) => {
   }
 })
 
-app.get('/:type/:personalId', async (req, res) => {
+app.get('/:type/:personalId', authMiddleware, async (req, res) => {
   try {
     const { type, personalId } = req.params
     console.log(type, personalId)

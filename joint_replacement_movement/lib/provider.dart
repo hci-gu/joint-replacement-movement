@@ -37,7 +37,7 @@ class HealthFetcher with ChangeNotifier {
   List<HealthDataPoint> healthDataList = [];
   bool isAuthorized = false;
   bool isLoading = false;
-  bool uploadSuccess = true;
+  bool uploadSuccess = false;
 
   setLoading(bool value) {
     isLoading = value;

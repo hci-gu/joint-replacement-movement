@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: jr-movement-api
-          image: 'appademin/jr-movement-api:0.0.1'
+          image: 'appademin/jr-movement-api:0.1.0'
           imagePullPolicy: Always
           ports:
             - containerPort: 4000
@@ -23,20 +23,25 @@ spec:
           env:
           - name: NODE_ENV
             value: production
+          - name: API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: jr-movement-api-secret
+                key: api-key
           - name: DB_USERNAME
             valueFrom:
               secretKeyRef:
-                name: jrm-postgres-secret
+                name: postgres-secret
                 key: postgres-user
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: jrm-postgres-secret
+                name: postgres-secret
                 key: postgres-password
           - name: DB_HOST
             valueFrom:
               configMapKeyRef:
-                name: jrm-postgres-configmap
+                name: postgres-configmap
                 key: postgres-host
           - name: DB
             valueFrom:

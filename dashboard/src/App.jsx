@@ -1,9 +1,19 @@
 import styled from '@emotion/styled'
 import React from 'react'
 import DarkModeToggle from './components/DarkModeToggle'
-import { AppShell, Button, Card, Flex, SimpleGrid, Text } from '@mantine/core'
+import {
+  Anchor,
+  AppShell,
+  Button,
+  Card,
+  Flex,
+  SimpleGrid,
+  Text,
+} from '@mantine/core'
 import { useAtomValue } from 'jotai'
 import { usersAtom } from './state'
+import { Route, useLocation } from 'wouter'
+import User from './User'
 // import { Header, Navbar } from '@mantine/core'
 
 const Container = styled.div`
@@ -23,6 +33,7 @@ const _formatTitle = (title) => {
 
 const Users = () => {
   const users = useAtomValue(usersAtom)
+  const location = useLocation()
 
   return (
     <Container>
@@ -35,16 +46,15 @@ const Users = () => {
             radius="md"
             withBorder
           >
-            <Card.Section inheritPadding withBorder>
-              <Text
+            <Card.Section inheritPadding withBorder p="sm">
+              <Anchor
+                href={`/user/${u.personalId}`}
                 fw={500}
                 size="xl"
-                mt="md"
-                pb="sm"
-                c="var(--mantine-color-anchor)"
+                underline="always"
               >
                 {u.personalId}
-              </Text>
+              </Anchor>
             </Card.Section>
             {Object.keys(u)
               .filter((k) => k !== 'personalId')
@@ -75,7 +85,12 @@ const App = () => {
         </Flex>
       </AppShell.Header>
       <AppShell.Main>
-        <Users />
+        <Route path="/">
+          <Users />
+        </Route>
+        <Route path="/user/:id">
+          <User />
+        </Route>
       </AppShell.Main>
     </AppShell>
   )

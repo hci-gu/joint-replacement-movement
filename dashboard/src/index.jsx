@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { MantineProvider } from '@mantine/core'
 import App from './App'
+import { Router } from 'wouter'
 
 const Root = () => {
   const [colorScheme, setColorScheme] = useState('light')
@@ -11,7 +12,9 @@ const Root = () => {
 
   return (
     <MantineProvider defaultColorScheme={colorScheme}>
-      <App />
+      <Router>
+        <App />
+      </Router>
     </MantineProvider>
   )
 }

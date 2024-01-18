@@ -23,6 +23,14 @@ RUN pnpm run build
 # Use an NGINX image to serve the built project
 FROM nginx:alpine as production-stage
 
+# Set ownership and permissions for Nginx directories
+RUN chown -R 1001:0 /var/cache/nginx \
+    && chmod -R g+w /var/cache/nginx \
+    && chown -R 1001:0 /var/run \
+    && chmod -R g+w /var/run \
+    && chown -R 1001:0 /usr/share/nginx/html \
+    && chmod -R g+w /usr/share/nginx/html
+
 # Copy the built files from the build stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 

@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: adminer
+  name: dashboard
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: adminer
+      app: dashboard
   template:
     metadata:
       labels:
-        app: adminer
+        app: dashboard
     spec:
       containers:
-        - name: adminer
-          image: 'adminer:latest'
+        - name: dashboard
+          image: 'appademin/movement-dashboard:0.0.1'
           ports:
             - containerPort: 8080
               name: web
@@ -24,10 +24,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: adminer-service
+  name: dashboard-service
 spec:
   selector:
-    app: adminer
+    app: dashboard
   ports:
     - protocol: TCP
       port: 8080
@@ -35,14 +35,14 @@ spec:
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: adminer
+  name: dashboard
   annotations:
     kubernetes.io/tls-acme: "true"
 spec:
-  host: movement-adminer.prod.appadem.in
+  host: movement-dashboard.prod.appadem.in
   to:
     kind: Service
-    name: adminer-service
+    name: dashboard-service
     weight: 100
   port:
     targetPort: 8080

@@ -106,8 +106,11 @@ class HealthDataDisplayer extends StatelessWidget {
   final List<HealthDataPoint> healthDataList;
   final HealthDataType type;
 
-  const HealthDataDisplayer(
-      {super.key, required this.healthDataList, required this.type});
+  const HealthDataDisplayer({
+    super.key,
+    required this.healthDataList,
+    required this.type,
+  });
 
   DateTime get firstDataPointDate => healthDataList.last.dateFrom;
   DateTime get lastDataPointDate => healthDataList.first.dateFrom;
