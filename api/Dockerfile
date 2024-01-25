@@ -1,6 +1,6 @@
 FROM node:16.14
 
-COPY index.js .
+COPY lib .
 COPY package.json .
 COPY yarn.lock .
 

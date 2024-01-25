@@ -1,6 +1,13 @@
-CREATE TABLE steps (
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     personal_id VARCHAR(255),
+    created_at TIMESTAMP,
+    event_date TIMESTAMP    
+)
+
+CREATE TABLE steps (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER,
     value INTEGER,
     data_type VARCHAR(255),
     unit VARCHAR(255),
@@ -14,6 +21,7 @@ CREATE TABLE steps (
 
 CREATE TABLE walking_speed (
     id SERIAL PRIMARY KEY,
+    user_id INTEGER,
     personal_id VARCHAR(255),
     value NUMERIC,
     data_type VARCHAR(255),
@@ -28,7 +36,7 @@ CREATE TABLE walking_speed (
 
 CREATE TABLE walking_asymmetry_percentage (
     id SERIAL PRIMARY KEY,
-    personal_id VARCHAR(255),
+    user_id INTEGER,
     value NUMERIC,
     data_type VARCHAR(255),
     unit VARCHAR(255),
@@ -42,7 +50,7 @@ CREATE TABLE walking_asymmetry_percentage (
 
 CREATE TABLE walking_steadiness (
     id SERIAL PRIMARY KEY,
-    personal_id VARCHAR(255),
+    user_id INTEGER,
     value NUMERIC,
     data_type VARCHAR(255),
     unit VARCHAR(255),
@@ -56,7 +64,7 @@ CREATE TABLE walking_steadiness (
 
 CREATE TABLE walking_double_support_percentage (
     id SERIAL PRIMARY KEY,
-    personal_id VARCHAR(255),
+    user_id INTEGER,
     value NUMERIC,
     data_type VARCHAR(255),
     unit VARCHAR(255),
@@ -70,7 +78,7 @@ CREATE TABLE walking_double_support_percentage (
 
 CREATE TABLE walking_step_length (
     id SERIAL PRIMARY KEY,
-    personal_id VARCHAR(255),
+    user_id INTEGER,
     value NUMERIC,
     data_type VARCHAR(255),
     unit VARCHAR(255),
@@ -81,3 +89,11 @@ CREATE TABLE walking_step_length (
     source_id VARCHAR(255),
     source_name VARCHAR(255)
 );
+
+ALTER TABLE steps ADD FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE walking_speed ADD FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE walking_asymmetry_percentage ADD FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE walking_steadiness ADD FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE walking_double_support_percentage ADD FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE walking_step_length ADD FOREIGN KEY (user_id) REFERENCES users(id);
+
