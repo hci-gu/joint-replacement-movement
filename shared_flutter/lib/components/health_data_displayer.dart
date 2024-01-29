@@ -6,82 +6,6 @@ import 'package:movement_code/components/cupertino_date_text_box.dart';
 import 'package:movement_code/state.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-class HealthDataDisplayer extends HookConsumerWidget {
-  const HealthDataDisplayer({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ValueNotifier<bool> loading = useState(false);
-
-    return loading.value
-        ? _loading()
-        : ref.watch(healthDataProvider).when(
-              data: (data) => _body(ref, data, loading),
-              error: _error,
-              loading: _loading,
-            );
-  }
-
-  Widget _error(_, __) {
-    return const Text('Error');
-  }
-
-  Widget _loading() {
-    return const Center(
-      child: CupertinoActivityIndicator(),
-    );
-  }
-
-  Widget _body(WidgetRef ref, HealthData data, ValueNotifier<bool> loading) {
-    if (data.authorizationFailed) {
-      return const RedoPermissions();
-    }
-
-    if (!data.isAuthorized) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: CupertinoButton.filled(
-          borderRadius: BorderRadius.circular(15.0),
-          child: const Row(
-            children: [
-              Spacer(),
-              Text(
-                'Ge tillgång',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-              Spacer(),
-            ],
-          ),
-          onPressed: () async {
-            loading.value = true;
-            await ref.read(healthDataProvider.notifier).authorize();
-            loading.value = false;
-          },
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        CupertinoListSection(
-          header: const Text('Data från Apple Health'),
-          children: [
-            for (final type in data.types)
-              HealthListTile(
-                items: data.itemsForType(type),
-                type: type,
-              ),
-          ],
-        ),
-        const HealthDataForm(),
-      ],
-    );
-  }
-}
-
 class PersonalIdFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -110,7 +34,8 @@ class HealthDataForm extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final textController = useTextEditingController(text: '');
+    final textController =
+        useTextEditingController(text: ref.watch(personalIdProvider));
 
     useEffect(() {
       void listener() {
@@ -127,38 +52,24 @@ class HealthDataForm extends HookConsumerWidget {
       children: [
         CupertinoTextField(
           controller: textController,
+          keyboardType: TextInputType.numberWithOptions(
+            signed: true,
+            decimal: false,
+          ),
           inputFormatters: [
             PersonalIdFormatter(),
           ],
-          prefix: const Padding(
-            padding: EdgeInsets.only(left: 8.0),
-            child: Text(
-              'Personnr',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.activeBlue,
-              ),
-            ),
-          ),
+          prefix: _prefix('Personnr'),
           placeholder: 'YYYYMMDD-XXXX',
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
         ),
         Row(
           mainAxisSize: MainAxisSize.max,
           children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 8.0),
-              child: Text(
-                'Datum',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: CupertinoColors.activeBlue,
-                ),
-              ),
-            ),
+            _prefix('Datum'),
             Expanded(
               child: CupertinoDateTextBox(
-                initialValue: null,
+                initialValue: ref.watch(operationDateProvider),
                 onDateChange: (value) {
                   ref.read(operationDateProvider.notifier).state = value;
                 },
@@ -168,6 +79,22 @@ class HealthDataForm extends HookConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _prefix(String text) {
+    return SizedBox(
+      width: 80,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 8.0),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: CupertinoColors.activeBlue,
+          ),
+        ),
+      ),
     );
   }
 }

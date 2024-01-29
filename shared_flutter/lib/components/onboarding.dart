@@ -1,14 +1,15 @@
 // Flutter imports:
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:movement_code/components/dots_indicator.dart';
 import 'package:movement_code/utils/single_direction_scroll.dart';
 
 const CupertinoDynamicColor kBaseTextColor = CupertinoColors.label;
 const CupertinoDynamicColor kDescriptionTextColor =
     CupertinoColors.secondaryLabel;
-const EdgeInsets _kOnboardingPagePadding = EdgeInsets.only(left: 35, right: 15);
+const EdgeInsets _kOnboardingPagePadding = EdgeInsets.only(left: 20, right: 15);
 const double _kTitleTopIndent = 80;
-const double _kTitleToBodySpacing = 24;
+const double _kTitleToBodySpacing = 16;
 
 // Estimated from the iPhone Simulator running iOS 15
 final CupertinoDynamicColor _kBackgroundColor =
@@ -53,6 +54,7 @@ class CupertinoOnboarding extends StatefulWidget {
     this.onPressedOnLastPage,
     this.onPageChange,
     this.nextPageDisabled = false,
+    this.widgetAboveTitle,
     super.key,
   }) : assert(
           pages.isNotEmpty,
@@ -73,6 +75,7 @@ class CupertinoOnboarding extends StatefulWidget {
   final VoidCallback? onPressedOnLastPage;
   final Function? onPageChange;
   final bool nextPageDisabled;
+  final Widget? widgetAboveTitle;
 
   @override
   State<CupertinoOnboarding> createState() => _CupertinoOnboardingState();
@@ -96,77 +99,67 @@ class _CupertinoOnboardingState extends State<CupertinoOnboarding> {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: widget.backgroundColor ?? _kBackgroundColor.resolveFrom(context),
-      child: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView(
-                physics: widget.nextPageDisabled
-                    ? const LeftBlockedScrollPhysics()
-                    : widget.scrollPhysics,
-                controller: _pageController,
-                children: widget.pages,
-                onPageChanged: (page) {
-                  setState(() {
-                    _currentPage = page;
-                    widget.onPageChange?.call(_currentPage);
-                  });
-                },
+    return SizedBox(
+      height: MediaQuery.of(context).size.height - 100,
+      child: Column(
+        children: [
+          if (widget.widgetAboveTitle != null) widget.widgetAboveTitle!,
+          Expanded(
+            child: PageView(
+              physics: widget.nextPageDisabled
+                  ? const LeftBlockedScrollPhysics()
+                  : widget.scrollPhysics,
+              controller: _pageController,
+              children: widget.pages,
+              onPageChanged: (page) {
+                setState(() {
+                  _currentPage = page;
+                  widget.onPageChange?.call(_currentPage);
+                });
+              },
+            ),
+          ),
+          if (widget.pages.length > 1)
+            DotsIndicator(
+              dotsCount: widget.pages.length,
+              position: _currentPage,
+              decorator: DotsDecorator(
+                activeColor: _kActiveDotColor.resolveFrom(context),
+                color: _kInactiveDotColor.resolveFrom(context),
+                activeSize: _kDotSize,
+                size: _kDotSize,
               ),
             ),
-            if (widget.pages.length > 1)
-              DotsIndicator(
-                dotsCount: widget.pages.length,
-                position: _currentPage,
-                decorator: DotsDecorator(
-                  activeColor: _kActiveDotColor.resolveFrom(context),
-                  color: _kInactiveDotColor.resolveFrom(context),
-                  activeSize: _kDotSize,
-                  size: _kDotSize,
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: CupertinoButton(
+              borderRadius:
+                  widget.bottomButtonBorderRadius ?? _bottomButtonBorderRadius,
+              color: widget.bottomButtonColor ??
+                  CupertinoTheme.of(context).primaryColor,
+              padding: const EdgeInsets.all(16),
+              onPressed: widget.nextPageDisabled
+                  ? null
+                  : _currentPage == widget.pages.length - 1
+                      ? widget.onPressedOnLastPage
+                      : _animateToNextPage,
+              child: DefaultTextStyle(
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
                 ),
-              ),
-            if (widget.widgetAboveBottomButton != null)
-              widget.widgetAboveBottomButton!
-            else
-              const SizedBox(height: 15),
-            Center(
-              child: Padding(
-                padding: widget.bottomButtonPadding,
-                child: Column(
+                child: Row(
                   children: [
-                    CupertinoButton(
-                      borderRadius: widget.bottomButtonBorderRadius ??
-                          _bottomButtonBorderRadius,
-                      color: widget.bottomButtonColor ??
-                          CupertinoTheme.of(context).primaryColor,
-                      padding: const EdgeInsets.all(16),
-                      onPressed: widget.nextPageDisabled
-                          ? null
-                          : _currentPage == widget.pages.length - 1
-                              ? widget.onPressedOnLastPage
-                              : _animateToNextPage,
-                      child: DefaultTextStyle(
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                        child: Row(
-                          children: [
-                            const Spacer(),
-                            widget.bottomButtonChild,
-                            const Spacer(),
-                          ],
-                        ),
-                      ),
-                    ),
+                    const Spacer(),
+                    widget.bottomButtonChild,
+                    const Spacer(),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -401,14 +394,6 @@ class OnboardingFeaturesPage extends StatelessWidget {
             )
         ],
       ),
-      // body: ListView.separated(
-      //   physics: scrollPhysics,
-      //   separatorBuilder: (_, __) => featuresSeperator,
-      //   itemCount: features.length,
-      //   itemBuilder: (context, index) {
-      //     return features[index];
-      //   },
-      // ),
     );
   }
 }

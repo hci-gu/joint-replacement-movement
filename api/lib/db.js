@@ -11,8 +11,14 @@ const TABLES = [
 ]
 
 const { DB_USERNAME, DB_HOST, DB, DB_PASSWORD } = process.env
-const [db_host, db_port] = DB_HOST?.split(':') ?? ['localhost', '5678']
-
+const [db_host, db_port] = DB_HOST?.split(':') ?? ['localhost', '5432']
+console.log({
+  user: DB_USERNAME,
+  host: db_host,
+  database: DB,
+  password: DB_PASSWORD,
+  port: db_port,
+})
 const pool = new Pool({
   user: DB_USERNAME,
   host: db_host,

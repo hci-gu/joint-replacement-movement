@@ -6,7 +6,7 @@ class DropDownCupertino<T extends Enum> extends StatefulWidget {
   final TextStyle? style;
   final ButtonStyle? buttonStyle;
   final double? height;
-  final Function(Enum?) onSelectedItemChanged;
+  final Function onSelectedItemChanged;
   final Map<T?, String> pickList;
   const DropDownCupertino(
       {Key? key,

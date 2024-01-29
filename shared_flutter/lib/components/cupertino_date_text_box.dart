@@ -136,12 +136,11 @@ class _CupertinoDateTextBoxState extends State<CupertinoDateTextBox> {
             hintText: hintText,
             hintStyle: TextStyle(
                 color: CupertinoColors.inactiveGray, fontSize: widget.fontSize),
-            contentPadding: EdgeInsets.all(widget.textfieldPadding),
-            // enabledBorder: OutlineInputBorder(
-            //     borderRadius: BorderRadius.circular(6.0),
-            //     borderSide: const BorderSide(
-            //         color: CupertinoColors.inactiveGray, width: 0.0)),
-            border: OutlineInputBorder(
+            contentPadding: EdgeInsets.symmetric(
+              vertical: widget.textfieldPadding,
+              horizontal: 2,
+            ),
+            border: const OutlineInputBorder(
               borderSide: BorderSide.none,
             ),
           ),

@@ -11,11 +11,11 @@ const port = 4000
 const API_KEY = process.env.API_KEY
 
 const authMiddleware = (req, res, next) => {
-  const { authorization } = req.headers
-  if (authorization !== API_KEY) {
-    res.status(401).send('Unauthorized')
-    return
-  }
+  // const { authorization } = req.headers
+  // if (authorization !== API_KEY) {
+  //   res.status(401).send('Unauthorized')
+  //   return
+  // }
   next()
 }
 
@@ -26,6 +26,7 @@ app.use(bodyParser.json({ limit: '750mb' }))
 app.post('/data', async (req, res) => {
   try {
     const { data, personalId, eventDate } = req.body
+    console.log('Received data for user', personalId, eventDate)
 
     // Check if user exists
     let user = await DB.getUser(personalId)
