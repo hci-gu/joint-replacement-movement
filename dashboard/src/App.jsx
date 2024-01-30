@@ -11,7 +11,7 @@ import {
   Text,
 } from '@mantine/core'
 import { useAtomValue } from 'jotai'
-import { usersAtom } from './state'
+import { dataTypes, usersAtom } from './state'
 import { Route, useLocation } from 'wouter'
 import User from './User'
 // import { Header, Navbar } from '@mantine/core'
@@ -39,7 +39,7 @@ const Users = () => {
       <SimpleGrid cols={2}>
         {users.map((u) => (
           <Card
-            key={`User_${u.personalId}`}
+            key={`User_${u.personal_id}`}
             shadow="sm"
             padding="xl"
             radius="md"
@@ -47,26 +47,24 @@ const Users = () => {
           >
             <Card.Section inheritPadding withBorder p="sm">
               <Anchor
-                href={`/user/${u.personalId}`}
+                href={`/user/${u.id}`}
                 fw={500}
                 size="xl"
                 underline="always"
               >
-                {u.personalId}
+                {u.personal_id}
               </Anchor>
             </Card.Section>
-            {Object.keys(u)
-              .filter((k) => k !== 'personalId')
-              .map((k) => (
-                <Flex align="baseline" justify="space-between">
-                  <Text fw={500} size="lg" mt="md">
-                    {_formatTitle(k)}:
-                  </Text>
-                  <Text size="lg" mt="md" c="dimmed">
-                    {_formatDate(u[k].first)} - {_formatDate(u[k].last)}
-                  </Text>
-                </Flex>
-              ))}
+            {dataTypes.map((k) => (
+              <Flex align="baseline" justify="space-between">
+                <Text fw={500} size="lg" mt="md">
+                  {_formatTitle(k)}:
+                </Text>
+                <Text size="lg" mt="md" c="dimmed">
+                  {_formatDate(u[k].first)} - {_formatDate(u[k].last)}
+                </Text>
+              </Flex>
+            ))}
           </Card>
         ))}
       </SimpleGrid>

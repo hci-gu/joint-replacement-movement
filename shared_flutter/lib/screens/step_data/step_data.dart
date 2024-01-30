@@ -1,23 +1,35 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:movement_code/components/already_done_wrapper.dart';
 import 'package:movement_code/components/health_data_displayer.dart';
 import 'package:movement_code/state.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:movement_code/storage.dart';
 
 class StepDataScreen extends HookConsumerWidget {
-  const StepDataScreen({super.key});
+  final bool includeDate;
+
+  const StepDataScreen({
+    super.key,
+    this.includeDate = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ValueNotifier<bool> loading = useState(false);
 
-    return loading.value
-        ? _loading()
-        : ref.watch(healthDataProvider).when(
-              data: (data) => _body(ref, data, loading),
-              error: _error,
-              loading: _loading,
-            );
+    return AlreadyDoneWrapper(
+      alreadyDone: Storage().getPersonalIdDone(),
+      child: loading.value
+          ? _loading()
+          : ref.watch(healthDataProvider).when(
+                data: (data) => _body(ref, data, loading),
+                error: _error,
+                loading: _loading,
+              ),
+    );
   }
 
   Widget _error(_, __) {
@@ -76,7 +88,9 @@ class StepDataScreen extends HookConsumerWidget {
               ),
           ],
         ),
-        const HealthDataForm(),
+        HealthDataForm(
+          includeDate: includeDate,
+        ),
       ],
     );
   }

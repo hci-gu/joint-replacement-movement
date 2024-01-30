@@ -90,10 +90,18 @@ CREATE TABLE walking_step_length (
     source_name VARCHAR(255)
 );
 
-ALTER TABLE steps ADD FOREIGN KEY (user_id) REFERENCES users(id);
-ALTER TABLE walking_speed ADD FOREIGN KEY (user_id) REFERENCES users(id);
-ALTER TABLE walking_asymmetry_percentage ADD FOREIGN KEY (user_id) REFERENCES users(id);
-ALTER TABLE walking_steadiness ADD FOREIGN KEY (user_id) REFERENCES users(id);
-ALTER TABLE walking_double_support_percentage ADD FOREIGN KEY (user_id) REFERENCES users(id);
-ALTER TABLE walking_step_length ADD FOREIGN KEY (user_id) REFERENCES users(id);
+CREATE TABLE questionnaires (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    created_at TIMESTAMP,
+    name VARCHAR(255),
+    answers JSON
+);
 
+ALTER TABLE steps ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE walking_speed ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE walking_asymmetry_percentage ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE walking_steadiness ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE walking_double_support_percentage ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE walking_step_length ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE questionnaires ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;

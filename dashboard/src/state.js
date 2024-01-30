@@ -3,8 +3,17 @@ import axios from 'axios'
 import { atomFamily, atomWithDefault } from 'jotai/utils'
 import deepEqual from 'fast-deep-equal'
 
-const API_URL = 'https://jr-movement-api.prod.appadem.in'
+const API_URL = import.meta.env.VITE_API_URL
 const API_KEY = import.meta.env.VITE_API_KEY
+
+export const dataTypes = [
+  'steps',
+  'walking_speed',
+  'walking_asymmetry_percentage',
+  'walking_steadiness',
+  'walking_double_support_percentage',
+  'walking_step_length',
+]
 
 export const usersAtom = atomWithDefault(async (get, { signal }) => {
   const response = await axios.get(`${API_URL}/users`, {
@@ -131,6 +140,7 @@ export const stepsAtom = atomFamily(
       const mappedData = data.reverse().map((d) => ({
         value: parseFloat(d.value),
         date: new Date(d.date_from),
+        device: d.device_id,
       }))
 
       const filteredData =
@@ -154,6 +164,7 @@ export const formattedDataAtom = atomFamily(
       const mappedData = data.reverse().map((d) => ({
         value: parseFloat(d.value),
         date: new Date(d.date_from),
+        device: d.device_id,
       }))
 
       const filteredData =

@@ -1,3 +1,4 @@
+import 'package:personnummer/personnummer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Storage {
@@ -39,6 +40,14 @@ class Storage {
 
   bool getQuestionnaire1Done() {
     return prefs.getBool('questionnaire1') ?? false;
+  }
+
+  bool getPersonalIdDone() {
+    String? storedPersonalId = getPersonalid();
+    if (storedPersonalId != null && Personnummer.valid(storedPersonalId)) {
+      return true;
+    }
+    return false;
   }
 
   static final Storage _instance = Storage._internal();

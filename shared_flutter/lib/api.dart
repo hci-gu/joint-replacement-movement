@@ -1,22 +1,21 @@
 import 'package:dio/dio.dart';
 import 'package:movement_code/state.dart';
 
-// const apiEndpoint = 'https://jr-movement-api.prod.appadem.in';
-// const apiEndpoint = 'http://192.168.10.100:4000';
-const apiEndpoint = 'http://192.168.0.33:4000';
-
 class Api {
   Dio api = Dio(
     BaseOptions(
-      baseUrl: apiEndpoint,
       headers: {
         'Content-Type': 'application/json',
       },
     ),
   );
+  init(String baseUrl) {
+    api.options.baseUrl = baseUrl;
+  }
 
   Future uploadData(
       String personalId, DateTime? operationDate, List<HealthDataPoint> data) {
+    print('upload: ${api.options.baseUrl}');
     Future request = api.post(
       '/data',
       data: {
@@ -29,14 +28,23 @@ class Api {
   }
 
   Future<bool> submitQuestionnaire(
-      String personalId, Map<String, dynamic> form) async {
+      String personalId, String name, Map<String, dynamic> answers) async {
     try {
+      print({
+        'name': name,
+        'answers': answers,
+      });
       Response response = await api.post(
-        '/:personalId/form',
-        data: form,
+        '/$personalId/form',
+        data: {
+          'name': name,
+          'answers': answers,
+        },
       );
       return response.statusCode == 200;
-    } catch (_) {}
+    } catch (e) {
+      print(e);
+    }
 
     return false;
   }

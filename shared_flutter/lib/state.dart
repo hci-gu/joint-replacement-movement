@@ -98,19 +98,19 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
   }
 
   Future uploadData() async {
-    if (ref.watch(dataUploadProvider) != null) {
+    if (ref.watch(dataUploadProvider) != null ||
+        Storage().getPersonalIdDone()) {
       return;
     }
 
     String personalId = ref.read(personalIdProvider);
     DateTime? operationDate = ref.read(operationDateProvider);
 
-    Future request = Future.delayed(const Duration(seconds: 8));
-    // Future request =
-    //     Api().uploadData(personalId, operationDate, state.value!.allItems);
+    Future request =
+        Api().uploadData(personalId, operationDate, state.value!.allItems);
 
     ref.read(dataUploadProvider.notifier).state = request;
-    request.whenComplete(() {
+    request.then((_) {
       Storage().storePersonalId(personalId);
       Storage().storeEventDate(operationDate!);
     });
@@ -124,43 +124,11 @@ final healthDataProvider =
   HealthDataManager.new,
 );
 
-final personalIdProvider = StateProvider<String>((ref) => '');
-final operationDateProvider = StateProvider<DateTime?>((ref) => null);
-
-final onboardingStepProvider = StateProvider((ref) {
-  String? personalId = Storage().getPersonalid();
-  bool questionnaire1Done = Storage().getQuestionnaire1Done();
-
-  // if (personalId != null && questionnaire1Done) {
-  //   return 4;
-  // }
-  // if (!questionnaire1Done) {
-  //   return 2;
-  // }
-
-  return 0;
-});
-
-final canContinueProvider = Provider((ref) {
-  final step = ref.watch(onboardingStepProvider);
-  final personalId = ref.watch(personalIdProvider);
-  final operationDate = ref.watch(operationDateProvider);
-  final movementForm = ref.watch(movementFormProvider);
-
-  switch (step) {
-    case 0:
-      return true;
-    case 1:
-      return operationDate != null && Personnummer.valid(personalId);
-    case 2:
-      return movementForm.questionDuration1 != null &&
-          movementForm.questionDuration2 != null;
-    case 3:
-      return true;
-    default:
-      return false;
-  }
-});
+final personalIdProvider =
+    StateProvider<String>((ref) => Storage().getPersonalid() ?? '');
+final operationDateProvider =
+    StateProvider<DateTime?>((ref) => Storage().getEventDate());
+final onboardingStepProvider = StateProvider((ref) => 0);
 
 enum QuestionDuration1 {
   zero,
@@ -171,6 +139,25 @@ enum QuestionDuration1 {
   moreThan120,
 }
 
+extension QuestionDuration1Display on QuestionDuration1 {
+  String get displayString {
+    switch (this) {
+      case QuestionDuration1.zero:
+        return '0 minuter / Ingen tid';
+      case QuestionDuration1.lessThan30:
+        return 'Mindre än 30 minuter';
+      case QuestionDuration1.between30And60:
+        return '30–60 minuter (0,5–1 timme)';
+      case QuestionDuration1.between60And90:
+        return '60–90 minuter (1–1,5 timmar)';
+      case QuestionDuration1.between90And120:
+        return '90–120 minuter (1,5–2 timmar)';
+      case QuestionDuration1.moreThan120:
+        return 'Mer än 120 minuter (2 timmar)';
+    }
+  }
+}
+
 enum QuestionDuration2 {
   zero,
   lessThan30,
@@ -179,6 +166,27 @@ enum QuestionDuration2 {
   between90And150,
   between150And300,
   moreThan300,
+}
+
+extension QuestionDuration2Display on QuestionDuration2 {
+  String get displayString {
+    switch (this) {
+      case QuestionDuration2.zero:
+        return '0 minuter / Ingen tid';
+      case QuestionDuration2.lessThan30:
+        return 'Mindre än 30 minuter';
+      case QuestionDuration2.between30And60:
+        return '30–60 minuter (0,5–1 timme)';
+      case QuestionDuration2.between60And90:
+        return '60–90 minuter (1–1,5 timmar)';
+      case QuestionDuration2.between90And150:
+        return '90–150 minuter (1,5–2,5 timmar)';
+      case QuestionDuration2.between150And300:
+        return '150–300 minuter (2,5–5 timmar)';
+      case QuestionDuration2.moreThan300:
+        return 'Mer än 300 minuter (5 timmar)';
+    }
+  }
 }
 
 class MovementForm extends ChangeNotifier {
@@ -197,23 +205,39 @@ class MovementForm extends ChangeNotifier {
     notifyListeners();
   }
 
-  setQuestion1(QuestionDuration1 value) {
+  setQuestion1(QuestionDuration1? value) {
     questionDuration1 = value;
+    notifyListeners();
   }
 
-  setQuestion2(QuestionDuration2 value) {
+  setQuestion2(QuestionDuration2? value) {
     questionDuration2 = value;
+    notifyListeners();
   }
 
   Future submitQuestionnaire(String personalId) async {
-    await Api().submitQuestionnaire(personalId, toJson());
+    print('submit questionnaire');
+    // if (Storage().getQuestionnaire1Done()) {
+    //   print('already did');
+    //   return;
+    // }
+
+    try {
+      await Api()
+          .submitQuestionnaire(personalId, 'questionnaire1', getAnswers());
+    } catch (e) {
+      print(e);
+      return;
+    }
+
+    Storage().storeQuestionnaireDone();
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> getAnswers() {
     return {
       'question1': movementChange,
-      'question2': questionDuration1,
-      'question3': questionDuration2,
+      'question2': questionDuration1?.displayString,
+      'question3': questionDuration2?.displayString,
     };
   }
 }

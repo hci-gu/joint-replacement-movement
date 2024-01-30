@@ -30,7 +30,12 @@ class PersonalIdFormatter extends TextInputFormatter {
 }
 
 class HealthDataForm extends HookConsumerWidget {
-  const HealthDataForm({super.key});
+  final bool includeDate;
+
+  const HealthDataForm({
+    super.key,
+    this.includeDate = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,7 +57,7 @@ class HealthDataForm extends HookConsumerWidget {
       children: [
         CupertinoTextField(
           controller: textController,
-          keyboardType: TextInputType.numberWithOptions(
+          keyboardType: const TextInputType.numberWithOptions(
             signed: true,
             decimal: false,
           ),
@@ -63,21 +68,22 @@ class HealthDataForm extends HookConsumerWidget {
           placeholder: 'YYYYMMDD-XXXX',
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
         ),
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            _prefix('Datum'),
-            Expanded(
-              child: CupertinoDateTextBox(
-                initialValue: ref.watch(operationDateProvider),
-                onDateChange: (value) {
-                  ref.read(operationDateProvider.notifier).state = value;
-                },
-                hintText: 'Tryck för att välja datum',
-              ),
-            )
-          ],
-        ),
+        if (includeDate)
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              _prefix('Datum'),
+              Expanded(
+                child: CupertinoDateTextBox(
+                  initialValue: ref.watch(operationDateProvider),
+                  onDateChange: (value) {
+                    ref.read(operationDateProvider.notifier).state = value;
+                  },
+                  hintText: 'Tryck för att välja datum',
+                ),
+              )
+            ],
+          ),
       ],
     );
   }

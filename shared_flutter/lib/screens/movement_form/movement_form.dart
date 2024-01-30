@@ -41,6 +41,7 @@ class MovementFormScreen extends ConsumerWidget {
                   value: ref.watch(movementFormProvider).movementChange,
                   min: -100,
                   max: 200,
+                  divisions: 300,
                   onChanged: (value) {
                     ref
                         .read(movementFormProvider.notifier)
@@ -65,16 +66,11 @@ class MovementFormScreen extends ConsumerWidget {
               style: const TextStyle(
                 color: CupertinoColors.activeBlue,
               ),
-              pickList: const {
+              pickList: {
                 null: 'Välj ett alternativ',
-                QuestionDuration1.zero: '0 minuter / Ingen tid',
-                QuestionDuration1.lessThan30: 'Mindre än 30 minuter',
-                QuestionDuration1.between30And60: '30–60 minuter (0,5–1 timme)',
-                QuestionDuration1.between60And90:
-                    '60–90 minuter (1–1,5 timmar)',
-                QuestionDuration1.between90And120:
-                    '90–120 minuter (1,5–2 timmar)',
-                QuestionDuration1.moreThan120: 'Mer än 120 minuter (2 timmar)'
+                ...QuestionDuration1.values
+                    .asMap()
+                    .map((key, value) => MapEntry(value, value.displayString))
               }),
           const SizedBox(height: 16),
           const Text(
@@ -91,18 +87,11 @@ class MovementFormScreen extends ConsumerWidget {
               style: const TextStyle(
                 color: CupertinoColors.activeBlue,
               ),
-              pickList: const {
+              pickList: {
                 null: 'Välj ett alternativ',
-                QuestionDuration2.zero: '0 minuter / Ingen tid',
-                QuestionDuration2.lessThan30: 'Mindre än 30 minuter',
-                QuestionDuration2.between30And60: '30–60 minuter (0,5–1 timme)',
-                QuestionDuration2.between60And90:
-                    '60–90 minuter (1–1,5 timmar)',
-                QuestionDuration2.between90And150:
-                    '90–150 minuter (1,5–2,5 timmar)',
-                QuestionDuration2.between150And300:
-                    '150–300 minuter (2,5–5 timmar)',
-                QuestionDuration2.moreThan300: 'Mer än 300 minuter (5 timmar)'
+                ...QuestionDuration2.values
+                    .asMap()
+                    .map((key, value) => MapEntry(value, value.displayString))
               }),
         ],
       ),

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fracture-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fracture-api
+  template:
+    metadata:
+      labels:
+        app: fracture-api
+    spec:
+      containers:
+        - name: fracture-api
+          image: 'appademin/fracture-api:0.0.1'
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4000
+              name: web
+              protocol: TCP
+          env:
+          - name: NODE_ENV
+            value: production
+          - name: API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: fracture-api-secret
+                key: api-key
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: postgres-user
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: postgres-password
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: postgres-configmap
+                key: postgres-host
+          - name: DB
+            valueFrom:
+              configMapKeyRef:
+                name: fracture-postgres-configmap
+                key: postgres-dbname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fracture-api-service
+spec:
+  selector:
+    app: fracture-api
+  ports:
+    - protocol: TCP
+      port: 4000
