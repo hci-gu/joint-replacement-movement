@@ -11,11 +11,11 @@ const port = 4000
 const API_KEY = process.env.API_KEY
 
 const authMiddleware = (req, res, next) => {
-  // const { authorization } = req.headers
-  // if (authorization !== API_KEY) {
-  //   res.status(401).send('Unauthorized')
-  //   return
-  // }
+  const { authorization } = req.headers
+  if (authorization !== API_KEY) {
+    res.status(401).send('Unauthorized')
+    return
+  }
   next()
 }
 
@@ -61,11 +61,40 @@ app.post('/data', async (req, res) => {
 app.get('/users', authMiddleware, async (req, res) => {
   try {
     const rows = await DB.getUsers()
+    const usersWithInfo = await Promise.all(
+      rows.map(async (row) => {
+        const data = await DB.getUserMetadata(row.id)
+        return { ...row, ...data }
+      })
+    )
 
-    res.send(rows)
+    res.send(usersWithInfo)
   } catch (error) {
     console.error('Error getting users', error)
     res.status(500).send('Error getting users')
+  }
+})
+
+app.post('/:id/form', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { name, answers } = req.body
+    console.log('Submit form for user', id, name, answers)
+
+    // Check if user exists
+    let user = await DB.getUser(id)
+    if (!user) {
+      res.status(404).send('User not found')
+      return
+    }
+
+    // Save form
+    await DB.saveForm(user.id, name, answers)
+
+    res.sendStatus(200)
+  } catch (error) {
+    console.error('Error saving form', error)
+    res.status(500).send('Error saving form')
   }
 })
 

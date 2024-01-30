@@ -9,6 +9,7 @@ const TABLES = [
   'walking_double_support_percentage',
   'walking_step_length',
 ]
+const DATA_TABLES = TABLES.filter((table) => table !== 'users')
 
 const { DB_USERNAME, DB_HOST, DB, DB_PASSWORD } = process.env
 const [db_host, db_port] = DB_HOST?.split(':') ?? ['localhost', '5432']
@@ -106,11 +107,41 @@ const getDataForType = async (type, id) => {
   return rows
 }
 
+const getUserMetadata = async (id) => {
+  let info = DATA_TABLES.reduce((acc, table) => {
+    acc[table] = { count: 0, first: null, last: null }
+    return acc
+  }, {})
+  for (table of DATA_TABLES) {
+    // get count of data points for each user
+    const countQueryText = `SELECT COUNT(*) FROM ${table} WHERE user_id = $1`
+    const { rows: countRows } = await pool.query(countQueryText, [id])
+    info[table].count = countRows[0].count
+
+    // get first and last data point for each user
+    const firstQueryText = `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY date_from ASC LIMIT 1`
+    const { rows: firstRows } = await pool.query(firstQueryText, [id])
+    info[table].first = firstRows[0].date_from
+
+    const lastQueryText = `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY date_from DESC LIMIT 1`
+    const { rows: lastRows } = await pool.query(lastQueryText, [id])
+    info[table].last = lastRows[0].date_from
+  }
+  return info
+}
+
+const saveForm = (userId, name, answers) => {
+  const queryText = `INSERT INTO questionnaires (user_id, name, created_at, answers) VALUES ($1, $2, $3, $4) RETURNING *`
+  return pool.query(queryText, [userId, name, new Date(), answers])
+}
+
 module.exports = {
   processInBatches,
   getUser,
   getUsers,
   createUser,
   getDataForType,
+  getUserMetadata,
+  saveForm,
   TABLES,
 }
