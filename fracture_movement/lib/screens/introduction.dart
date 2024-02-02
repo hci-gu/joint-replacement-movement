@@ -45,7 +45,6 @@ class IntroductionScreen extends ConsumerWidget {
             ],
           ),
           const CupertinoOnboardingPage(
-            titleTopIndent: 32,
             title: Text('Din stegdata'),
             description: Text(
               'De behöver ge oss tillgång till din data genom "Hälsa" appen på din iPhone.',

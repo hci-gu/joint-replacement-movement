@@ -98,8 +98,7 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
   }
 
   Future uploadData() async {
-    if (ref.watch(dataUploadProvider) != null ||
-        Storage().getPersonalIdDone()) {
+    if (ref.watch(dataUploadProvider) != null) {
       return;
     }
 
@@ -216,17 +215,14 @@ class MovementForm extends ChangeNotifier {
   }
 
   Future submitQuestionnaire(String personalId) async {
-    print('submit questionnaire');
-    // if (Storage().getQuestionnaire1Done()) {
-    //   print('already did');
-    //   return;
-    // }
+    if (Storage().getQuestionnaire1Done()) {
+      return;
+    }
 
     try {
       await Api()
           .submitQuestionnaire(personalId, 'questionnaire1', getAnswers());
-    } catch (e) {
-      print(e);
+    } catch (_) {
       return;
     }
 

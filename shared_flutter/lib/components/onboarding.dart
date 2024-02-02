@@ -8,7 +8,6 @@ const CupertinoDynamicColor kBaseTextColor = CupertinoColors.label;
 const CupertinoDynamicColor kDescriptionTextColor =
     CupertinoColors.secondaryLabel;
 const EdgeInsets _kOnboardingPagePadding = EdgeInsets.only(left: 20, right: 15);
-const double _kTitleTopIndent = 80;
 const double _kTitleToBodySpacing = 16;
 
 // Estimated from the iPhone Simulator running iOS 15
@@ -81,6 +80,10 @@ class CupertinoOnboarding extends StatefulWidget {
   State<CupertinoOnboarding> createState() => _CupertinoOnboardingState();
 }
 
+bool isSmallScreen(BuildContext context) {
+  return MediaQuery.of(context).size.height < 667;
+}
+
 class _CupertinoOnboardingState extends State<CupertinoOnboarding> {
   final PageController _pageController = PageController();
 
@@ -100,7 +103,8 @@ class _CupertinoOnboardingState extends State<CupertinoOnboarding> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: MediaQuery.of(context).size.height - 100,
+      height: MediaQuery.of(context).size.height -
+          (isSmallScreen(context) ? 44 : 100),
       child: Column(
         children: [
           if (widget.widgetAboveTitle != null) widget.widgetAboveTitle!,
@@ -119,6 +123,7 @@ class _CupertinoOnboardingState extends State<CupertinoOnboarding> {
               },
             ),
           ),
+          const SizedBox(height: 8),
           if (widget.pages.length > 1)
             DotsIndicator(
               dotsCount: widget.pages.length,
@@ -130,9 +135,9 @@ class _CupertinoOnboardingState extends State<CupertinoOnboarding> {
                 size: _kDotSize,
               ),
             ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: CupertinoButton(
               borderRadius:
                   widget.bottomButtonBorderRadius ?? _bottomButtonBorderRadius,
@@ -181,7 +186,6 @@ class CupertinoOnboardingPage extends StatelessWidget {
     required this.body,
     this.description,
     this.bodyPadding = _kOnboardingPagePadding,
-    this.titleTopIndent = _kTitleTopIndent,
     this.titleToBodySpacing = _kTitleToBodySpacing,
     this.bodyToBottomSpacing = 0,
     this.titleFlex = 3,
@@ -203,11 +207,6 @@ class CupertinoOnboardingPage extends StatelessWidget {
 
   /// Padding of the body.
   final EdgeInsets bodyPadding;
-
-  /// Top indent of the title.
-  ///
-  /// Defaults to 80.
-  final double titleTopIndent;
 
   /// Spacing between the title and the body.
   ///
@@ -232,7 +231,7 @@ class CupertinoOnboardingPage extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.only(
-            top: titleTopIndent,
+            top: MediaQuery.of(context).size.height / 20,
             bottom: titleToBodySpacing,
           ),
           child: DefaultTextStyle(
@@ -310,7 +309,6 @@ class OnboardingFeaturesPage extends StatelessWidget {
     this.title = const Text("What's New"),
     this.description,
     this.bodyPadding = _kOnboardingPagePadding,
-    this.titleTopIndent = _kTitleTopIndent,
     this.titleToBodySpacing = _kTitleToBodySpacing,
     this.bodyToBottomSpacing = 0,
     this.titleFlex = 3,
@@ -345,11 +343,6 @@ class OnboardingFeaturesPage extends StatelessWidget {
   /// Padding of the body.
   final EdgeInsets bodyPadding;
 
-  /// Top indent of the title.
-  ///
-  /// Defaults to 80.
-  final double titleTopIndent;
-
   /// Spacing between the title and the body.
   ///
   /// Defaults to 55.
@@ -378,12 +371,10 @@ class OnboardingFeaturesPage extends StatelessWidget {
       title: title,
       description: description,
       bodyPadding: bodyPadding,
-      titleTopIndent: titleTopIndent,
       titleToBodySpacing: titleToBodySpacing,
       bodyToBottomSpacing: bodyToBottomSpacing,
       titleFlex: titleFlex,
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
+      body: ListView(
         children: [
           for (var feature in features)
             Column(

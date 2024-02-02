@@ -76,7 +76,7 @@ class StepDataScreen extends HookConsumerWidget {
       );
     }
 
-    return Column(
+    return ListView(
       children: [
         CupertinoListSection(
           header: const Text('Data från Apple Health'),
