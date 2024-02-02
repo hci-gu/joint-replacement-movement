@@ -148,7 +148,9 @@ export const stepsAtom = atomFamily(
           ? mappedData.filter((d) => d.date >= from && d.date <= to)
           : mappedData
 
-      return groupStepsByInterval(filteredData, groupBy)
+      const grouped = groupStepsByInterval(filteredData, groupBy)
+
+      return grouped.sort((a, b) => a.sort - b.sort)
     }),
   deepEqual
 )

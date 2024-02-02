@@ -22,7 +22,8 @@ const Container = styled.div`
   width: 90%;
 `
 
-const _formatDate = (dateString) => dateString.split('T')[0]
+const _formatDate = (dateString) =>
+  dateString ? dateString.split('T')[0] : 'N/A'
 
 const _formatTitle = (title) => {
   const words = title.split('_')

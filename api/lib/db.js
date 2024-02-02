@@ -121,11 +121,11 @@ const getUserMetadata = async (id) => {
     // get first and last data point for each user
     const firstQueryText = `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY date_from ASC LIMIT 1`
     const { rows: firstRows } = await pool.query(firstQueryText, [id])
-    info[table].first = firstRows[0].date_from
+    info[table].first = firstRows[0]?.date_from
 
     const lastQueryText = `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY date_from DESC LIMIT 1`
     const { rows: lastRows } = await pool.query(lastQueryText, [id])
-    info[table].last = lastRows[0].date_from
+    info[table].last = lastRows[0]?.date_from
   }
   return info
 }

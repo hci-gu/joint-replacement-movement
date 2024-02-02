@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: jr-movement-api
-          image: 'appademin/jr-movement-api:0.1.0'
+          image: 'appademin/jr-movement-api:0.2.2'
           imagePullPolicy: Always
           ports:
             - containerPort: 4000
