@@ -32,14 +32,14 @@ class Storage {
     return null;
   }
 
-  Future storeQuestionnaireDone() async {
+  Future storeQuestionnaireDone(String questionnaireId) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    prefs.setBool('questionnaire1', true);
+    prefs.setBool(questionnaireId, true);
   }
 
-  bool getQuestionnaire1Done() {
-    return prefs.getBool('questionnaire1') ?? false;
+  bool getQuestionnaireDone(String questionnaireId) {
+    return prefs.getBool(questionnaireId) ?? false;
   }
 
   bool getPersonalIdDone() {

@@ -105,6 +105,9 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
     String personalId = ref.read(personalIdProvider);
     DateTime? operationDate = ref.read(operationDateProvider);
 
+    if (state.value == null || state.value!.allItems.isEmpty) {
+      return;
+    }
     Future request =
         Api().uploadData(personalId, operationDate, state.value!.allItems);
 
@@ -215,7 +218,7 @@ class MovementForm extends ChangeNotifier {
   }
 
   Future submitQuestionnaire(String personalId) async {
-    if (Storage().getQuestionnaire1Done()) {
+    if (Storage().getQuestionnaireDone('questionnaire1')) {
       return;
     }
 
@@ -226,7 +229,7 @@ class MovementForm extends ChangeNotifier {
       return;
     }
 
-    Storage().storeQuestionnaireDone();
+    Storage().storeQuestionnaireDone('questionnaire1');
   }
 
   Map<String, dynamic> getAnswers() {
@@ -240,3 +243,91 @@ class MovementForm extends ChangeNotifier {
 
 final movementFormProvider =
     ChangeNotifierProvider<MovementForm>((ref) => MovementForm());
+
+enum QuestionSatisfied {
+  verySatisfied,
+  satisfied,
+  neutral,
+  dissatisfied,
+  veryDissatisfied,
+}
+
+extension QuestionSatisfiedDisplay on QuestionSatisfied {
+  String get displayString {
+    switch (this) {
+      case QuestionSatisfied.verySatisfied:
+        return 'Mycket nöjd';
+      case QuestionSatisfied.satisfied:
+        return 'Nöjd';
+      case QuestionSatisfied.neutral:
+        return 'Neutral';
+      case QuestionSatisfied.dissatisfied:
+        return 'Missnöjd';
+      case QuestionSatisfied.veryDissatisfied:
+        return 'Mycket missnöjd';
+    }
+  }
+}
+
+class AppForm extends ChangeNotifier {
+  QuestionSatisfied? questionSatisfied1;
+  QuestionSatisfied? questionSatisfied2;
+  String understanding;
+  String comments;
+
+  AppForm({
+    this.questionSatisfied1,
+    this.questionSatisfied2,
+    this.understanding = '',
+    this.comments = '',
+  });
+
+  setQuestion1(QuestionSatisfied? value) {
+    questionSatisfied1 = value;
+    notifyListeners();
+  }
+
+  setQuestion2(QuestionSatisfied? value) {
+    questionSatisfied2 = value;
+    notifyListeners();
+  }
+
+  setUnderStanding(String value) {
+    understanding = value;
+    notifyListeners();
+  }
+
+  setComments(String value) {
+    comments = value;
+    notifyListeners();
+  }
+
+  bool get canSubmit =>
+      questionSatisfied1 != null && questionSatisfied2 != null;
+
+  Future submitQuestionnaire(String personalId) async {
+    if (Storage().getQuestionnaireDone('questionnaire2')) {
+      return;
+    }
+
+    try {
+      await Api()
+          .submitQuestionnaire(personalId, 'questionnaire2', getAnswers());
+    } catch (_) {
+      return;
+    }
+
+    Storage().storeQuestionnaireDone('questionnaire2');
+  }
+
+  Map<String, dynamic> getAnswers() {
+    return {
+      'question1': questionSatisfied1?.displayString,
+      'question2': questionSatisfied2?.displayString,
+      'question3': understanding,
+      'question4': comments,
+    };
+  }
+}
+
+final appFormProvider = ChangeNotifierProvider<AppForm>((ref) => AppForm());

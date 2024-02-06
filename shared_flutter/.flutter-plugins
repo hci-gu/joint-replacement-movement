@@ -1,6 +1,11 @@
 # This is a generated file; do not edit or check into version control.
 app_settings=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/app_settings-5.1.1/
 device_info_plus=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/device_info_plus-9.1.1/
+flutter_keyboard_visibility=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/flutter_keyboard_visibility-6.0.0/
+flutter_keyboard_visibility_linux=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/flutter_keyboard_visibility_linux-1.0.0/
+flutter_keyboard_visibility_macos=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/flutter_keyboard_visibility_macos-1.0.0/
+flutter_keyboard_visibility_web=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/flutter_keyboard_visibility_web-2.0.0/
+flutter_keyboard_visibility_windows=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/flutter_keyboard_visibility_windows-1.0.0/
 health=/Users/sebastianandreasson/Documents/code/work/gu/joint-replacement-movement/health/
 path_provider_linux=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/path_provider_linux-2.2.1/
 path_provider_windows=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/path_provider_windows-2.2.1/
@@ -15,3 +20,10 @@ shared_preferences_foundation=/Users/sebastianandreasson/.pub-cache/hosted/pub.d
 shared_preferences_linux=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/shared_preferences_linux-2.3.2/
 shared_preferences_web=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/shared_preferences_web-2.2.2/
 shared_preferences_windows=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/shared_preferences_windows-2.3.2/
+url_launcher=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/url_launcher-6.2.4/
+url_launcher_android=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/url_launcher_android-6.2.2/
+url_launcher_ios=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/url_launcher_ios-6.2.4/
+url_launcher_linux=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/url_launcher_linux-3.1.1/
+url_launcher_macos=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/url_launcher_macos-3.1.0/
+url_launcher_web=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/url_launcher_web-2.2.3/
+url_launcher_windows=/Users/sebastianandreasson/.pub-cache/hosted/pub.dev/url_launcher_windows-3.1.1/

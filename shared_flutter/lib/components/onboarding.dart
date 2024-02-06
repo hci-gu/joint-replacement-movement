@@ -242,16 +242,7 @@ class CupertinoOnboardingPage extends StatelessWidget {
               letterSpacing: -1,
               fontSize: 35,
             ),
-            child: Row(
-              children: [
-                const Spacer(),
-                Expanded(
-                  flex: 3,
-                  child: title,
-                ),
-                const Spacer(),
-              ],
-            ),
+            child: title,
           ),
         ),
         if (description != null)

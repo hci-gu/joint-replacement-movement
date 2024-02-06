@@ -2,9 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:fracture_movement/screens/introduction.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/api.dart';
-import 'package:movement_code/components/onboarding.dart';
-import 'package:movement_code/components/onboarding_feature.dart';
-import 'package:movement_code/screens/step_data/step_data.dart';
 import 'package:movement_code/storage.dart';
 
 void main() async {

@@ -4,7 +4,7 @@ import 'package:joint_replacement_movement/state/state.dart';
 import 'package:movement_code/components/onboarding.dart';
 import 'package:movement_code/components/onboarding_feature.dart';
 import 'package:movement_code/components/upload_progress.dart';
-import 'package:movement_code/screens/movement_form/movement_form.dart';
+import 'package:movement_code/screens/forms/movement_form.dart';
 import 'package:movement_code/screens/step_data/step_data.dart';
 import 'package:movement_code/state.dart';
 import 'package:movement_code/storage.dart';
