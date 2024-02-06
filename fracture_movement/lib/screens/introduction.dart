@@ -14,8 +14,8 @@ class IntroductionScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(children: [
       CupertinoOnboarding(
-        widgetAboveTitle: const UploadProgress(),
-        onPressedOnLastPage: () => Navigator.pop(context),
+        onPressedOnLastPage: () =>
+            Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false),
         bottomButtonChild:
             Text(buttonTextForStep(ref.watch(onboardingStepProvider))),
         nextPageDisabled: !ref.watch(canContinueProvider),
@@ -39,7 +39,27 @@ class IntroductionScreen extends ConsumerWidget {
                 ),
                 title: const Text('Din stegdata'),
                 description: const Text(
-                  'Först behöver du ge oss tillgång till din stegdata och ange ditt personnummer samt det datum du hade din operation.',
+                  'Först behöver du ge oss tillgång till din stegdata.',
+                ),
+              ),
+              OnboardingFeature(
+                icon: Icon(
+                  CupertinoIcons.person,
+                  color: CupertinoColors.systemRed.resolveFrom(context),
+                ),
+                title: const Text('Ange personnr'),
+                description: const Text(
+                  'För att kunna koppla din stegdata till dig behöver vi ditt personnummer.',
+                ),
+              ),
+              OnboardingFeature(
+                icon: Icon(
+                  CupertinoIcons.cloud_upload,
+                  color: CupertinoColors.systemRed.resolveFrom(context),
+                ),
+                title: const Text('Ladda upp'),
+                description: const Text(
+                  'Det tar en liten stund att ladda upp stegdatan, du behöver inte göra något medans det sker ( ca 30 sekunder )',
                 ),
               ),
             ],
@@ -54,6 +74,22 @@ class IntroductionScreen extends ConsumerWidget {
               includeDate: false,
             ),
           ),
+          CupertinoOnboardingPage(
+            title: const Text('Tack för din medverkan!'),
+            description: const Text(
+              'Vänligen stanna kvar här tills din stegdata har laddats upp. Det kan ta några minuter.',
+            ),
+            bodyPadding: EdgeInsets.zero,
+            body: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ref.watch(dataUploadProvider) == null
+                    ? const Text('Uppladding färdig, du kan nu stänga av appen')
+                    : const UploadProgress(),
+              ],
+            ),
+          ),
         ],
       ),
     ]);
@@ -66,9 +102,7 @@ class IntroductionScreen extends ConsumerWidget {
       case 1:
         return 'Skicka in';
       case 2:
-        return 'Fortsätt';
-      case 3:
-        return 'Skicka in';
+        return 'Slutför';
       default:
         return 'Sätt igång';
     }

@@ -43,8 +43,24 @@ class StepDataScreen extends HookConsumerWidget {
   }
 
   Widget _body(WidgetRef ref, HealthData data, ValueNotifier<bool> loading) {
-    if (data.authorizationFailed) {
-      return const RedoPermissions();
+    if (data.hasData) {
+      return ListView(
+        children: [
+          CupertinoListSection(
+            header: const Text('Data från Apple Health'),
+            children: [
+              for (final type in data.types)
+                HealthListTile(
+                  items: data.itemsForType(type),
+                  type: type,
+                ),
+            ],
+          ),
+          HealthDataForm(
+            includeDate: includeDate,
+          ),
+        ],
+      );
     }
 
     if (!data.isAuthorized) {
@@ -75,24 +91,7 @@ class StepDataScreen extends HookConsumerWidget {
         ),
       );
     }
-
-    return ListView(
-      children: [
-        CupertinoListSection(
-          header: const Text('Data från Apple Health'),
-          children: [
-            for (final type in data.types)
-              HealthListTile(
-                items: data.itemsForType(type),
-                type: type,
-              ),
-          ],
-        ),
-        HealthDataForm(
-          includeDate: includeDate,
-        ),
-      ],
-    );
+    return const RedoPermissions();
   }
 }
 

@@ -10,13 +10,6 @@ const CupertinoDynamicColor kDescriptionTextColor =
 const EdgeInsets _kOnboardingPagePadding = EdgeInsets.only(left: 20, right: 15);
 const double _kTitleToBodySpacing = 16;
 
-// Estimated from the iPhone Simulator running iOS 15
-final CupertinoDynamicColor _kBackgroundColor =
-    CupertinoDynamicColor.withBrightness(
-  color: CupertinoColors.white,
-  darkColor: CupertinoColors.systemGrey6.darkColor,
-);
-
 final CupertinoDynamicColor _kActiveDotColor =
     CupertinoDynamicColor.withBrightness(
   color: CupertinoColors.systemGrey2.darkColor,
@@ -81,7 +74,7 @@ class CupertinoOnboarding extends StatefulWidget {
 }
 
 bool isSmallScreen(BuildContext context) {
-  return MediaQuery.of(context).size.height < 667;
+  return MediaQuery.of(context).size.height < 670;
 }
 
 class _CupertinoOnboardingState extends State<CupertinoOnboarding> {

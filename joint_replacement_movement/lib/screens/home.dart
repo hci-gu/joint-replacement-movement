@@ -190,7 +190,7 @@ class ContactTab extends StatelessWidget {
                 children: [
                   const TextSpan(
                     text:
-                        'Ansvariga för projektet är OIa Rolfson (huvudansvarig forskare), ',
+                        'Ansvariga för projektet är Ola Rolfson (huvudansvarig forskare), ',
                     style: TextStyle(
                       fontSize: 15,
                       color: CupertinoColors.black,

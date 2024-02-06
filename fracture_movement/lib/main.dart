@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:fracture_movement/screens/home.dart';
 import 'package:fracture_movement/screens/introduction.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/api.dart';
@@ -6,7 +7,8 @@ import 'package:movement_code/storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Api().init('https://192.168.10.100:4000');
+  // Api().init('https://192.168.10.100:4000');
+  Api().init('https://fracture-api.prod.appadem.in');
   await Storage().reloadPrefs();
   runApp(const ProviderScope(child: App()));
 }
@@ -27,9 +29,22 @@ class App extends StatelessWidget {
       child: const CupertinoApp(
         home: CupertinoPageScaffold(
           backgroundColor: CupertinoColors.systemGroupedBackground,
-          child: IntroductionScreen(),
+          child: ScreenSelector(),
         ),
       ),
     );
+  }
+}
+
+class ScreenSelector extends ConsumerWidget {
+  const ScreenSelector({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (Storage().getPersonalIdDone()) {
+      return const HomeScreen();
+    }
+
+    return const IntroductionScreen();
   }
 }

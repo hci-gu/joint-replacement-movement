@@ -15,15 +15,15 @@ class Api {
 
   Future uploadData(
       String personalId, DateTime? operationDate, List<HealthDataPoint> data) {
-    print('upload: ${api.options.baseUrl}');
-    Future request = api.post(
-      '/data',
-      data: {
-        'personalId': personalId,
-        'eventDate': operationDate?.toIso8601String(),
-        'data': data.map((e) => e.toJson()).toList(),
-      },
-    );
+    Map<String, dynamic> body = {
+      'personalId': personalId,
+      'data': data.map((e) => e.toJson()).toList(),
+    };
+    if (operationDate != null) {
+      body['eventDate'] = operationDate.toIso8601String();
+    }
+
+    Future request = api.post('/data', data: body);
     return request;
   }
 

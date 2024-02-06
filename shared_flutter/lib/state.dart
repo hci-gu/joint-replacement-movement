@@ -34,11 +34,13 @@ class HealthData {
   final Map<HealthDataType, List<HealthDataPoint>> data;
   final bool isAuthorized;
   final bool authorizationFailed;
+  final bool triedToAuthorize;
 
   HealthData(
     this.data, {
     required this.isAuthorized,
     required this.authorizationFailed,
+    required this.triedToAuthorize,
   });
 
   List<HealthDataType> get types => data.keys.toList();
@@ -58,6 +60,7 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
   HealthFactory health = HealthFactory();
   bool isAuthorized = false;
   bool authorizationFailed = false;
+  bool triedToAuthorize = false;
 
   @override
   FutureOr<HealthData> build() async {
@@ -76,8 +79,9 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
 
     return HealthData(
       healthDataMap,
-      isAuthorized: healthDataMap.isNotEmpty || isAuthorized,
-      authorizationFailed: healthDataMap.isEmpty && authorizationFailed,
+      isAuthorized: isAuthorized,
+      authorizationFailed: authorizationFailed,
+      triedToAuthorize: triedToAuthorize,
     );
   }
 
@@ -85,7 +89,7 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
     await Permission.activityRecognition.request();
     await Permission.location.request();
 
-    bool isAuthorized =
+    isAuthorized =
         await health.requestAuthorization(types, permissions: permissions);
 
     bool? hasPermissions =
@@ -94,6 +98,7 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
     if (!isAuthorized || hasPermissions != true) {
       authorizationFailed = true;
     }
+    triedToAuthorize = true;
     ref.invalidateSelf();
   }
 

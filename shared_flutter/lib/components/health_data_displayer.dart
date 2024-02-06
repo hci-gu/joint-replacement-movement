@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/cupertino_date_text_box.dart';
 import 'package:movement_code/state.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:personnummer/personnummer.dart';
 
 class PersonalIdFormatter extends TextInputFormatter {
   @override
@@ -39,24 +40,43 @@ class HealthDataForm extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final _focusNode = useFocusNode();
     final textController =
         useTextEditingController(text: ref.watch(personalIdProvider));
+    ValueNotifier<String?> errorMessage = useState(null);
 
     useEffect(() {
       void listener() {
         ref.read(personalIdProvider.notifier).state = textController.text;
+        if (Personnummer.valid(textController.text)) {
+          errorMessage.value = null;
+        }
       }
 
       textController.addListener(listener);
       return () => textController.removeListener(listener);
     }, [textController]);
 
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        if (textController.text.length < 13) {
+          errorMessage.value = 'För kort';
+        } else if (!Personnummer.valid(textController.text)) {
+          errorMessage.value = 'Ogiltigt';
+        } else {
+          errorMessage.value = null;
+        }
+      }
+    });
+
     return CupertinoListSection(
-      header:
-          const Text('Fyll i ditt personnummer och datumet då du opererades'),
+      header: Text(includeDate
+          ? 'Fyll i ditt personnummer och datumet då du opererades'
+          : 'Fyll i ditt personnummer'),
       children: [
         CupertinoTextField(
           controller: textController,
+          focusNode: _focusNode,
           keyboardType: const TextInputType.numberWithOptions(
             signed: true,
             decimal: false,
@@ -64,7 +84,7 @@ class HealthDataForm extends HookConsumerWidget {
           inputFormatters: [
             PersonalIdFormatter(),
           ],
-          prefix: _prefix('Personnr'),
+          prefix: _prefix('Personnr', errorMessage.value),
           placeholder: 'YYYYMMDD-XXXX',
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
         ),
@@ -88,18 +108,37 @@ class HealthDataForm extends HookConsumerWidget {
     );
   }
 
-  Widget _prefix(String text) {
+  Widget _prefix(String text, [String? error]) {
     return SizedBox(
       width: 80,
       child: Padding(
         padding: const EdgeInsets.only(left: 8.0),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: CupertinoColors.activeBlue,
-          ),
-        ),
+        child: error != null
+            ? Column(
+                children: [
+                  Text(
+                    text,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: CupertinoColors.destructiveRed,
+                    ),
+                  ),
+                  Text(
+                    error,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: CupertinoColors.destructiveRed,
+                    ),
+                  ),
+                ],
+              )
+            : Text(
+                text,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: CupertinoColors.activeBlue,
+                ),
+              ),
       ),
     );
   }
