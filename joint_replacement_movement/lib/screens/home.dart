@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/average_steps.dart';
-import 'package:movement_code/components/onboarding.dart';
 import 'package:movement_code/components/step_chart.dart';
 import 'package:movement_code/screens/forms/app_form.dart';
 import 'package:movement_code/storage.dart';
@@ -14,60 +13,55 @@ class DataTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tack för din medverkan',
-              style: CupertinoTheme.of(context)
-                  .textTheme
-                  .navTitleTextStyle
-                  .copyWith(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-            Text(
-              'Nedan ser du dina steg före och efter operationen.',
-              textAlign: TextAlign.center,
-              style:
-                  CupertinoTheme.of(context).textTheme.pickerTextStyle.copyWith(
-                        fontSize: 16,
-                      ),
-            ),
-            _divider(),
-            CupertinoSegmentedControl<Period>(
-              children: {
-                Period.week: _segmentItem('Vecka'),
-                Period.month: _segmentItem('Månad'),
-                Period.quarter: _segmentItem('Kvartal'),
-              },
-              onValueChanged: (value) {
-                ref.read(periodProvider.notifier).state = value;
-              },
-              groupValue: ref.watch(periodProvider),
-              padding: EdgeInsets.zero,
-            ),
-            const SizedBox(height: 16),
-            ref.watch(chartDataProvider).when(
-                  data: (data) => StepDataChart(
-                    data: data,
-                    period: ref.watch(periodProvider),
-                  ),
-                  error: (_, __) =>
-                      _chartContainer(const Center(child: Text('oh no'))),
-                  loading: () => _chartContainer(
-                    const Center(
-                      child: CupertinoActivityIndicator(),
-                    ),
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        children: [
+          Text(
+            'Tack för din medverkan',
+            style: CupertinoTheme.of(context)
+                .textTheme
+                .navTitleTextStyle
+                .copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          Text(
+            'Nedan ser du dina steg före och efter operationen.',
+            style: CupertinoTheme.of(context)
+                .textTheme
+                .pickerTextStyle
+                .copyWith(fontSize: 16),
+          ),
+          _divider(),
+          CupertinoSegmentedControl<Period>(
+            children: {
+              Period.week: _segmentItem('Vecka'),
+              Period.month: _segmentItem('Månad'),
+              Period.quarter: _segmentItem('Kvartal'),
+            },
+            onValueChanged: (value) {
+              ref.read(periodProvider.notifier).state = value;
+            },
+            groupValue: ref.watch(periodProvider),
+            padding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 16),
+          ref.watch(chartDataProvider).when(
+                data: (data) => StepDataChart(
+                  data: data,
+                  period: ref.watch(periodProvider),
+                ),
+                error: (_, __) =>
+                    _chartContainer(const Center(child: Text('-'))),
+                loading: () => _chartContainer(
+                  const Center(
+                    child: CupertinoActivityIndicator(),
                   ),
                 ),
-            _divider(),
-            const AverageSteps(),
-            const SizedBox(height: 16),
-            _disclaimerText(context),
-          ],
-        ),
+              ),
+          _divider(),
+          const AverageSteps(),
+          const SizedBox(height: 16),
+          _disclaimerText(context),
+        ],
       ),
     );
   }
@@ -137,21 +131,7 @@ class QuestionnaireTab extends StatelessWidget {
       );
     }
 
-    return ListView(
-      shrinkWrap: true,
-      children: [
-        SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: const CupertinoOnboardingPage(
-            title: Text('Om appen'),
-            description: Text(
-              'Du kan återvända till appen efter en vecka för att svara på dessa frågor kring appen.',
-            ),
-            body: AppFormScreen(),
-          ),
-        )
-      ],
-    );
+    return const AppFormScreen();
   }
 }
 
@@ -162,7 +142,7 @@ class ContactTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -170,7 +150,7 @@ class ContactTab extends StatelessWidget {
               'Om forskningsprojektet',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             const Text(
               'Artros är den vanligaste ledsjukdomen i världen. Majoriteten av dem som har genomgått protesoperation rapporterar minskad smärta, bättre rörlighet och återuppnår bättre livskvalitet, men det är inte helt klarlagd hur och i vilken utsträckning aktivitet och rörelsemönster ändras efter ledprotesoperation. Digitala verktyg som smarta telefoner och klockor ger oss nya förutsättningar att få en rättvisande bild av människors fysiska aktivitet under längre tid än vad som är möjligt med andra metoder såsom självskattning eller gånganalys i laboratorium. Med denna utgångspunkt kommer vi att utveckla en applikation för iPhone som registrerar rörelsedata före och efter en ledprotesoperation i höft och knä.',
               textAlign: TextAlign.justify,
@@ -179,12 +159,12 @@ class ContactTab extends StatelessWidget {
                 color: CupertinoColors.black,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             const Text(
               'Kontaktpersoner',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text.rich(
               TextSpan(
                 children: [
