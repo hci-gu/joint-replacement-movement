@@ -17,7 +17,6 @@ class AverageSteps extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        // color: CupertinoColors.black.withOpacity(0.05),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
           color: CupertinoColors.black.withOpacity(0.1),
@@ -68,7 +67,7 @@ class AverageSteps extends ConsumerWidget {
       FutureProvider<double> provider, Color color) {
     return ref.watch(provider).when(
           data: (steps) => _stepWidget(context, steps, color),
-          error: (_, __) => const Center(child: Text('oh no')),
+          error: (_, __) => const Center(child: Text('-')),
           loading: () => const SizedBox(
             height: 24,
             child: Center(

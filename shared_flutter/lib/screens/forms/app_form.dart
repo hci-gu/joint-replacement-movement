@@ -17,12 +17,44 @@ class AppFormScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ValueNotifier<bool> loading = useState<bool>(false);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView(
+      padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 200),
       children: [
+        SizedBox(height: MediaQuery.of(context).size.height / 20),
+        const Text(
+          'Om appen',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: CupertinoColors.label,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -1,
+            fontSize: 35,
+          ),
+        ),
+        const DefaultTextStyle(
+          textAlign: TextAlign.justify,
+          style: TextStyle(
+            color: CupertinoColors.secondaryLabel,
+            fontSize: 15,
+            height: 1.3,
+            letterSpacing: -0.1,
+          ),
+          child: Row(
+            children: [
+              Spacer(),
+              Expanded(
+                flex: 6,
+                child: Text(
+                  'Du kan återvända till appen efter en vecka för att svara på dessa frågor kring appen.',
+                ),
+              ),
+              Spacer(),
+            ],
+          ),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height / 20),
         const Text(
           'Vad tycker du om innehållet av applikationen?',
-          textAlign: TextAlign.justify,
           style: _textStyle,
         ),
         const SizedBox(height: 8),
@@ -43,7 +75,6 @@ class AppFormScreen extends HookConsumerWidget {
         const SizedBox(height: 24),
         const Text(
           'Vad tycker du om hur datan presenteras?',
-          textAlign: TextAlign.justify,
           style: _textStyle,
         ),
         const SizedBox(height: 8),
@@ -64,7 +95,6 @@ class AppFormScreen extends HookConsumerWidget {
         const SizedBox(height: 24),
         const Text(
           'Hur upplever du förståelsen av rörelsemönstret och hur den har förändrats över tid?',
-          textAlign: TextAlign.justify,
           style: _textStyle,
         ),
         const SizedBox(height: 8),

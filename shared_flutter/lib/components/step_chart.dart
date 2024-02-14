@@ -151,32 +151,6 @@ class ChartData {
 
   ChartData(this.points, this.eventDate);
 
-  // List<DataPoint> get pointsBefore {
-  //   Map<DateTime, List<DataPoint>> monthMap = {};
-  //   List<DataPoint> pointsBefore = points
-  //       .where((element) =>
-  //           eventDate.isBefore(element.date) ||
-  //           eventDate.isAtSameMomentAs(element.date))
-  //       .toList();
-
-  //   for (DataPoint point in pointsBefore) {
-  //     DateTime date = DateTime(point.date.year, point.date.month);
-  //     if (monthMap[date] == null) {
-  //       monthMap[date] = [];
-  //     }
-  //     monthMap[date]!.add(point);
-  //   }
-
-  //   List<DataPoint> _points = monthMap.entries.map((e) {
-  //     double sum = e.value.map((e) => e.value).reduce((value, element) {
-  //           return value + element;
-  //         }) /
-  //         e.value.length;
-  //     return DataPoint(e.key, sum);
-  //   }).toList();
-
-  //   return _points;
-  // }
   DataPoint get eventPoint =>
       points.firstWhere((element) => isSameDay(element.date, eventDate),
           orElse: () => DataPoint(eventDate, 0));
