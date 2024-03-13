@@ -88,19 +88,20 @@ class CupertinoOnboarding extends HookWidget {
               borderRadius: BorderRadius.circular(15),
               color: CupertinoTheme.of(context).primaryColor,
               padding: const EdgeInsets.all(16),
-              onPressed: () async {
-                if (nextPageDisabled) return;
-                await beforePageChange();
-                if (currentPage.value == pages.length - 1) {
-                  onPressedOnLastPage?.call();
-                  return;
-                }
-                pageController.nextPage(
-                  duration: pageTransitionAnimationDuration,
-                  curve: pageTransitionAnimationCurve,
-                );
-                onPressed?.call();
-              },
+              onPressed: nextPageDisabled
+                  ? null
+                  : () async {
+                      await beforePageChange();
+                      if (currentPage.value == pages.length - 1) {
+                        onPressedOnLastPage?.call();
+                        return;
+                      }
+                      pageController.nextPage(
+                        duration: pageTransitionAnimationDuration,
+                        curve: pageTransitionAnimationCurve,
+                      );
+                      onPressed?.call();
+                    },
               child: DefaultTextStyle(
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,

@@ -113,26 +113,36 @@ const getUserMetadata = async (id) => {
     return acc
   }, {})
   for (table of DATA_TABLES) {
-    // get count of data points for each user
-    const countQueryText = `SELECT COUNT(*) FROM ${table} WHERE user_id = $1`
-    const { rows: countRows } = await pool.query(countQueryText, [id])
-    info[table].count = countRows[0].count
+    try {
+      // get count of data points for each user
+      const countQueryText = `SELECT COUNT(*) FROM ${table} WHERE user_id = $1`
+      const { rows: countRows } = await pool.query(countQueryText, [id])
+      info[table].count = countRows[0].count
 
-    // get first and last data point for each user
-    const firstQueryText = `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY date_from ASC LIMIT 1`
-    const { rows: firstRows } = await pool.query(firstQueryText, [id])
-    info[table].first = firstRows[0]?.date_from
+      // get first and last data point for each user
+      const firstQueryText = `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY date_from ASC LIMIT 1`
+      const { rows: firstRows } = await pool.query(firstQueryText, [id])
+      info[table].first = firstRows[0]?.date_from
 
-    const lastQueryText = `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY date_from DESC LIMIT 1`
-    const { rows: lastRows } = await pool.query(lastQueryText, [id])
-    info[table].last = lastRows[0]?.date_from
+      const lastQueryText = `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY date_from DESC LIMIT 1`
+      const { rows: lastRows } = await pool.query(lastQueryText, [id])
+      info[table].last = lastRows[0]?.date_from
+    } catch (e) {
+      console.log(e)
+    }
   }
+  info.hasData = Object.values(info).some((table) => table.count > 0)
   return info
 }
 
 const saveForm = (userId, name, answers) => {
   const queryText = `INSERT INTO questionnaires (user_id, name, created_at, answers) VALUES ($1, $2, $3, $4) RETURNING *`
   return pool.query(queryText, [userId, name, new Date(), answers])
+}
+
+const saveConsent = (userId, consented) => {
+  const queryText = `INSERT INTO consent (user_id, created_at, consented) VALUES ($1, $2, $3) RETURNING *`
+  return pool.query(queryText, [userId, new Date(), consented])
 }
 
 module.exports = {
@@ -143,5 +153,6 @@ module.exports = {
   getDataForType,
   getUserMetadata,
   saveForm,
+  saveConsent,
   TABLES,
 }

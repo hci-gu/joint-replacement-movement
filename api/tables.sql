@@ -5,6 +5,13 @@ CREATE TABLE users (
     event_date TIMESTAMP    
 )
 
+CREATE TABLE consent (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    created_at TIMESTAMP,
+    consented BOOLEAN
+)
+
 CREATE TABLE steps (
     id SERIAL PRIMARY KEY,
     user_id INTEGER,
@@ -22,7 +29,6 @@ CREATE TABLE steps (
 CREATE TABLE walking_speed (
     id SERIAL PRIMARY KEY,
     user_id INTEGER,
-    personal_id VARCHAR(255),
     value NUMERIC,
     data_type VARCHAR(255),
     unit VARCHAR(255),
@@ -105,3 +111,4 @@ ALTER TABLE walking_steadiness ADD FOREIGN KEY (user_id) REFERENCES users(id) ON
 ALTER TABLE walking_double_support_percentage ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE walking_step_length ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE questionnaires ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE consent ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;

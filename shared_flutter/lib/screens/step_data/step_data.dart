@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/already_done_wrapper.dart';
 import 'package:movement_code/screens/step_data/health_data_form.dart';
@@ -44,17 +45,19 @@ class StepDataScreen extends HookConsumerWidget {
 
   Widget _body(WidgetRef ref, HealthData data, ValueNotifier<bool> loading) {
     if (data.hasData) {
-      return Column(
-        children: [
-          CupertinoListSection(
-            header: const Text('Data från "Hälsa" appen'),
-            children: [
-              for (final type in data.types)
-                HealthListTile(items: data.itemsForType(type), type: type),
-            ],
-          ),
-          HealthDataForm(includeDate: includeDate),
-        ],
+      return Scrollbar(
+        child: ListView(
+          children: [
+            CupertinoListSection(
+              header: const Text('Data från "Hälsa" appen'),
+              children: [
+                for (final type in data.types)
+                  HealthListTile(items: data.itemsForType(type), type: type),
+              ],
+            ),
+            HealthDataForm(includeDate: includeDate),
+          ],
+        ),
       );
     }
 

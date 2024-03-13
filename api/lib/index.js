@@ -22,19 +22,43 @@ const authMiddleware = (req, res, next) => {
 // bodyparser and allow max size
 app.use(bodyParser.json({ limit: '750mb' }))
 
+app.post('/users', async (req, res) => {
+  try {
+    const { personalId, eventDate } = req.body
+
+    // Check if user exists
+    let user = await DB.getUser(personalId, eventDate)
+    if (user) {
+      res.status(200).send('User already exists')
+      return
+    }
+
+    // Create user
+    user = await DB.createUser(personalId)
+
+    res.send(user)
+  } catch (error) {
+    console.error('Error creating user', error)
+    res.status(500).send('Error creating user')
+  }
+})
+
 // POST route to receive and save data
 app.post('/data', async (req, res) => {
   try {
     const { data, personalId, eventDate } = req.body
-    console.log('Received data for user', personalId, eventDate)
 
     // Check if user exists
     let user = await DB.getUser(personalId)
-    if (user) {
-      res.status(200)
-      return
-    } else {
+    if (!user) {
       user = await DB.createUser(personalId, eventDate)
+    } else {
+      // check if user already has data
+      const metadata = await DB.getUserMetadata(user.id)
+      if (metadata.hasData) {
+        res.status(200)
+        return
+      }
     }
 
     // Sort data into groups based on data_type
@@ -75,11 +99,32 @@ app.get('/users', authMiddleware, async (req, res) => {
   }
 })
 
+app.post('/:id/consent', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { consent } = req.body
+
+    // Check if user exists
+    let user = await DB.getUser(id)
+    if (!user) {
+      res.status(404).send('User not found')
+      return
+    }
+
+    // Save consent
+    await DB.saveConsent(user.id, consent)
+
+    res.sendStatus(200)
+  } catch (error) {
+    console.error('Error saving consent', error)
+    res.status(500).send('Error saving consent')
+  }
+})
+
 app.post('/:id/form', async (req, res) => {
   try {
     const { id } = req.params
     const { name, answers } = req.body
-    console.log('Submit form for user', id, name, answers)
 
     // Check if user exists
     let user = await DB.getUser(id)
