@@ -7,8 +7,9 @@ import 'package:movement_code/storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Api().init('https://192.168.10.100:4000');
-  Api().init('https://fracture-api.prod.appadem.in');
+  Api().init('http://192.168.10.107:4000');
+  // Api().init('https://fracture-api.prod.appadem.in');
+  // Api().init('http://localhost:4000');
   await Storage().reloadPrefs();
   runApp(const ProviderScope(child: App()));
 }

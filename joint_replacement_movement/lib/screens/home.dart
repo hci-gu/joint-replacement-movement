@@ -143,8 +143,7 @@ class ContactTab extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
             const Text(
               'Om forskningsprojektet',

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:movement_code/components/onboarding.dart';
-import 'package:movement_code/components/onboarding_feature.dart';
+import 'package:movement_code/components/onboarding/onboarding.dart';
+import 'package:movement_code/components/onboarding/onboarding_feature.dart';
 import 'package:movement_code/components/upload_progress.dart';
 import 'package:movement_code/screens/step_data/step_data.dart';
 import 'package:movement_code/state.dart';
@@ -19,9 +19,12 @@ class IntroductionScreen extends ConsumerWidget {
         bottomButtonChild:
             Text(buttonTextForStep(ref.watch(onboardingStepProvider))),
         nextPageDisabled: !ref.watch(canContinueProvider),
-        onPageChange: (page) {
+        onPageChange: (page) async {
           ref.read(onboardingStepProvider.notifier).state = page;
           if (page == 2) {
+            await ref
+                .read(healthDataProvider.notifier)
+                .createUserAndUploadConsent();
             ref.read(healthDataProvider.notifier).uploadData();
           }
         },
@@ -29,7 +32,7 @@ class IntroductionScreen extends ConsumerWidget {
           OnboardingFeaturesPage(
             title: const Text('Brytpunkten'),
             description: const Text(
-              'Hej och välkommen till appen, nedan ser du en överblick på allt du behöver göra för att komma igång. Det tar bara några minuter.',
+              'Hej och välkommen till appen, nedan ser du en överblick på allt du behöver göra för att komma igång. Det tar bara några få minuter och behöver enbart genomföras vid ett tillfälle.',
             ),
             features: [
               OnboardingFeature(
@@ -49,7 +52,7 @@ class IntroductionScreen extends ConsumerWidget {
                 ),
                 title: const Text('Ange personnr'),
                 description: const Text(
-                  'För att kunna koppla din stegdata till dig behöver vi ditt personnummer.',
+                  'Ange personnummer och samtycke för att ladda upp din stegdata',
                 ),
               ),
               OnboardingFeature(

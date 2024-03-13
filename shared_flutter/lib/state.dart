@@ -2,14 +2,12 @@ library movement_code;
 
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:health/health.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/api.dart';
 import 'package:movement_code/storage.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:personnummer/personnummer.dart';
 
 export 'package:health/health.dart';
 
@@ -102,6 +100,17 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
     ref.invalidateSelf();
   }
 
+  Future createUserAndUploadConsent() async {
+    String personalId = ref.read(personalIdProvider);
+    if (personalId.isEmpty) {
+      return;
+    }
+
+    bool consent = ref.read(consentProvider);
+    await Api().createUser(personalId);
+    await Api().giveConsent(personalId, consent);
+  }
+
   Future uploadData() async {
     if (ref.watch(dataUploadProvider) != null) {
       return;
@@ -133,6 +142,7 @@ final healthDataProvider =
 
 final personalIdProvider =
     StateProvider<String>((ref) => Storage().getPersonalid() ?? '');
+final consentProvider = StateProvider<bool>((ref) => false);
 final operationDateProvider =
     StateProvider<DateTime?>((ref) => Storage().getEventDate());
 final onboardingStepProvider = StateProvider((ref) => 0);

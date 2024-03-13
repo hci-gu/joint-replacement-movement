@@ -15,7 +15,7 @@ class MovementFormScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
+      child: ListView(
         children: [
           const Text(
             'Jämfört med tiden före din ledprotesoperation, hur mycket har din dagliga rörelse ökat eller minskat?',

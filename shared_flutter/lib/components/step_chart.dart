@@ -50,6 +50,20 @@ final chartDataProvider = FutureProvider<ChartData>((ref) async {
   DateTime? eventDate = ref.watch(operationDateProvider);
   Period period = ref.watch(periodProvider);
 
+  // return ChartData([
+  //   DataPoint(DateTime(2022, 2, 22), 3912),
+  //   DataPoint(DateTime(2022, 3, 22), 4321),
+  //   DataPoint(DateTime(2022, 4, 22), 3121),
+  //   DataPoint(DateTime(2022, 5, 22), 3400), // date
+  //   DataPoint(DateTime(2022, 5, 23), 1231),
+  //   DataPoint(DateTime(2022, 5, 24), 912),
+  //   DataPoint(DateTime(2022, 5, 25), 2102),
+  //   DataPoint(DateTime(2022, 5, 26), 2182),
+  //   DataPoint(DateTime(2022, 5, 27), 2790),
+  //   DataPoint(DateTime(2022, 5, 28), 3841),
+  //   DataPoint(DateTime(2022, 5, 29), 5212),
+  // ], DateTime(2022, 5, 22));
+
   if (eventDate == null) {
     return ChartData([], DateTime.now());
   }
@@ -264,131 +278,125 @@ class StepDataChart extends StatelessWidget {
     ];
     final tooltipsOnBar = lineBarsData[0];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width - 32,
-          height: 250,
-          child: LineChart(
-            LineChartData(
-              minX: 0,
-              maxX: maxX,
-              minY: 0,
-              maxY: maxY,
-              showingTooltipIndicators: [
-                ShowingTooltipIndicators([
-                  LineBarSpot(
-                    tooltipsOnBar,
-                    lineBarsData.indexOf(tooltipsOnBar),
-                    tooltipsOnBar.spots.last,
-                  ),
-                ])
-              ],
-              gridData: const FlGridData(
-                show: false,
-                drawHorizontalLine: true,
-                drawVerticalLine: false,
-                horizontalInterval: 2500,
-              ),
-              borderData: FlBorderData(
-                show: false,
-              ),
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 32,
-                    getTitlesWidget: (value, meta) {
-                      if (value == meta.max) return const SizedBox.shrink();
-
-                      String val = (value ~/ 1000).toString();
-
-                      return Text('${val}k', style: _chartTextStyle(context));
-                    },
-                  ),
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: const TextScaler.linear(1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width - 32,
+            height: 250,
+            child: LineChart(
+              LineChartData(
+                minX: 0,
+                maxX: maxX,
+                minY: 0,
+                maxY: maxY,
+                showingTooltipIndicators: [
+                  ShowingTooltipIndicators([
+                    LineBarSpot(
+                      tooltipsOnBar,
+                      lineBarsData.indexOf(tooltipsOnBar),
+                      tooltipsOnBar.spots.last,
+                    ),
+                  ])
+                ],
+                gridData: const FlGridData(
+                  show: false,
+                  drawHorizontalLine: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 2500,
                 ),
-                rightTitles: const AxisTitles(),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 32,
-                    interval: 7,
-                    getTitlesWidget: (double value, TitleMeta meta) {
-                      if (value > 21) {
-                        if (value % 21 == 0) {
-                          DataPoint point = data
-                              .pointsAfter[(value - 21).toInt() ~/ multiplier];
-                          return SideTitleWidget(
-                            axisSide: meta.axisSide,
-                            child: Text(
-                              _shortDate(point.date),
-                              style: _chartTextStyle(context),
-                            ),
-                          );
+                borderData: FlBorderData(
+                  show: false,
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 32,
+                      getTitlesWidget: (value, meta) {
+                        if (value == meta.max) return const SizedBox.shrink();
+
+                        String val = (value ~/ 1000).toString();
+
+                        return Text('${val}k', style: _chartTextStyle(context));
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 32,
+                      interval: 7,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        if (value > 21) {
+                          if (value % 21 == 0) {
+                            DataPoint point = data.pointsAfter[
+                                (value - 21).toInt() ~/ multiplier];
+                            return SideTitleWidget(
+                              axisSide: meta.axisSide,
+                              child: Text(
+                                _shortDate(point.date),
+                                style: _chartTextStyle(context),
+                              ),
+                            );
+                          }
                         }
-                      }
-                      if (value > 14) {
-                        return const SizedBox.shrink();
-                      }
-                      int index = value ~/ 7;
+                        if (value > 14) {
+                          return const SizedBox.shrink();
+                        }
+                        int index = value ~/ 7;
 
-                      return SideTitleWidget(
-                        axisSide: meta.axisSide,
-                        child: Text(
-                          '${3 - index}',
-                          style: _chartTextStyle(context),
-                        ),
-                      );
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            '${3 - index}',
+                            style: _chartTextStyle(context),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  topTitles: const AxisTitles(),
+                ),
+                lineBarsData: lineBarsData,
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  handleBuiltInTouches: false,
+                  touchTooltipData: LineTouchTooltipData(
+                    tooltipBgColor: CupertinoColors.activeBlue.withOpacity(0.9),
+                    tooltipRoundedRadius: 4,
+                    tooltipPadding: const EdgeInsets.all(6),
+                    tooltipMargin: 8,
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
+                    getTooltipItems: (List<LineBarSpot> lineBarsSpot) {
+                      return lineBarsSpot.map((lineBarSpot) {
+                        return LineTooltipItem(
+                          'Operation\n$date',
+                          const TextStyle(
+                            color: CupertinoColors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        );
+                      }).toList();
                     },
                   ),
                 ),
-                topTitles: const AxisTitles(),
-              ),
-              lineBarsData: lineBarsData,
-              lineTouchData: LineTouchData(
-                enabled: true,
-                handleBuiltInTouches: false,
-                touchTooltipData: LineTouchTooltipData(
-                  tooltipBgColor: CupertinoColors.activeBlue.withOpacity(0.9),
-                  tooltipRoundedRadius: 4,
-                  tooltipPadding: const EdgeInsets.all(6),
-                  tooltipMargin: 8,
-                  fitInsideHorizontally: true,
-                  fitInsideVertically: true,
-                  getTooltipItems: (List<LineBarSpot> lineBarsSpot) {
-                    return lineBarsSpot.map((lineBarSpot) {
-                      return LineTooltipItem(
-                        'Operation\n$date',
-                        const TextStyle(
-                          color: CupertinoColors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      );
-                    }).toList();
-                  },
-                ),
-                // getTouchedSpotIndicator:
-                //     (LineChartBarData barData, List<int> spotIndexes) {
-                //   return spotIndexes.map((index) {
-                //     return TouchedSpotIndicatorData(
-                //       const FlLine(strokeWidth: 0),
-                //       FlDotData(
-                //         show: false,
-                //       ),
-                //     );
-                //   }).toList();
-                // },
               ),
             ),
           ),
-        ),
-        Text(
-          'Mån innan operation',
-          style: _chartTextStyle(context),
-        ),
-      ],
+          Text(
+            'Mån innan operation',
+            style: _chartTextStyle(context),
+          ),
+        ],
+      ),
     );
   }
 

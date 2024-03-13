@@ -6,6 +6,7 @@ final canContinueProvider = Provider((ref) {
   final step = ref.watch(onboardingStepProvider);
   final personalId = ref.watch(personalIdProvider);
   final dataUpload = ref.watch(dataUploadProvider);
+  final consent = ref.watch(consentProvider);
 
   dataUpload?.then((value) {
     ref.read(dataUploadProvider.notifier).state = null;
@@ -16,7 +17,7 @@ final canContinueProvider = Provider((ref) {
     case 0:
       return true;
     case 1:
-      return Personnummer.valid(personalId);
+      return Personnummer.valid(personalId) && consent;
     case 2:
       return dataUpload == null;
     case 3:

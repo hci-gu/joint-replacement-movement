@@ -47,46 +47,51 @@ class _DropDownCupertinoState extends State<DropDownCupertino> {
             ),
         onPressed: (() {
           showCupertinoModalPopup(
-              context: context,
-              builder: (BuildContext context) => Container(
-                    height: 400,
-                    padding: const EdgeInsets.only(top: 6.0),
-                    // The Bottom margin is provided to align the popup above the system navigation bar.
-                    margin: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
-                    ),
-                    // Provide a background color for the popup.
-                    color:
-                        CupertinoColors.systemBackground.resolveFrom(context),
-                    // Use a SafeArea widget to avoid system overlaps.
-                    child: SafeArea(
-                      top: false,
-                      child: CupertinoPicker(
-                        magnification: 1.22,
-                        squeeze: 1.2,
-                        useMagnifier: true,
-                        itemExtent: 32,
-                        onSelectedItemChanged: (int selectedItem) {
-                          setState(() {
-                            categoryText =
-                                widget.pickList.values.elementAt(selectedItem);
-                          });
+            context: context,
+            builder: (BuildContext context) => Container(
+              height: 400,
+              padding: const EdgeInsets.only(top: 6.0),
+              // The Bottom margin is provided to align the popup above the system navigation bar.
+              margin: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              // Provide a background color for the popup.
+              color: CupertinoColors.systemBackground.resolveFrom(context),
+              // Use a SafeArea widget to avoid system overlaps.
+              child: SafeArea(
+                top: false,
+                child: MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: const TextScaler.linear(1),
+                  ),
+                  child: CupertinoPicker(
+                    magnification: 1.22,
+                    squeeze: 1.2,
+                    useMagnifier: true,
+                    itemExtent: 32,
+                    onSelectedItemChanged: (int selectedItem) {
+                      setState(() {
+                        categoryText =
+                            widget.pickList.values.elementAt(selectedItem);
+                      });
 
-                          widget.onSelectedItemChanged(
-                              widget.pickList.keys.toList()[selectedItem]);
-                        },
-                        children: List<Widget>.generate(widget.pickList.length,
-                            (int index) {
-                          return Center(
-                            child: Text(
-                              widget.pickList.values.elementAt(index),
-                              style: widget.style,
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                  ));
+                      widget.onSelectedItemChanged(
+                          widget.pickList.keys.toList()[selectedItem]);
+                    },
+                    children: List<Widget>.generate(widget.pickList.length,
+                        (int index) {
+                      return Center(
+                        child: Text(
+                          widget.pickList.values.elementAt(index),
+                          style: widget.style,
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
+          );
         }),
         child: Text(
           categoryText,

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:joint_replacement_movement/state/state.dart';
-import 'package:movement_code/components/onboarding.dart';
-import 'package:movement_code/components/onboarding_feature.dart';
+import 'package:movement_code/components/onboarding/onboarding.dart';
+import 'package:movement_code/components/onboarding/onboarding_feature.dart';
 import 'package:movement_code/components/upload_progress.dart';
 import 'package:movement_code/screens/forms/movement_form.dart';
 import 'package:movement_code/screens/step_data/step_data.dart';
