@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: fracture-api
-          image: 'appademin/fracture-api:0.0.2'
+          image: 'appademin/fracture-api:0.0.4'
           imagePullPolicy: Always
           ports:
             - containerPort: 4000

@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fracture-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fracture-dashboard
+  template:
+    metadata:
+      labels:
+        app: fracture-dashboard
+    spec:
+      containers:
+        - name: fracture-dashboard
+          image: 'appademin/fracture-dashboard:0.0.1'
+          ports:
+            - containerPort: 8080
+              name: web
+              protocol: TCP
+          imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fracture-dashboard-service
+spec:
+  selector:
+    app: fracture-dashboard
+  ports:
+    - protocol: TCP
+      port: 8080
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: fracture-dashboard
+  annotations:
+    kubernetes.io/tls-acme: "true"
+spec:
+  host: fracture-dashboard.prod.appadem.in
+  to:
+    kind: Service
+    name: fracture-dashboard-service
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

@@ -62,7 +62,7 @@ const Users = () => {
                   {_formatTitle(k)}:
                 </Text>
                 <Text size="lg" mt="md" c="dimmed">
-                  {_formatDate(u[k].first)} - {_formatDate(u[k].last)}
+                  {_formatDate(u[k]?.first)} - {_formatDate(u[k]?.last)}
                 </Text>
               </Flex>
             ))}

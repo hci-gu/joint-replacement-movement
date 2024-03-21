@@ -10,10 +10,10 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: jrmovement
       PGDATA: /var/lib/postgresql/data/pgdata
-  dashboard: 
-    build: './dashboard'
-    ports:
-      - 3001:8080
+  # dashboard: 
+  #   build: './dashboard'
+  #   ports:
+  #     - 3001:8080
   adminer:
     image: adminer
     restart: always
