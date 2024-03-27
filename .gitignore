@@ -1,1 +1,3 @@
 deploy/secrets.yaml
+pocketbase/pb_data
+pocketbase/app

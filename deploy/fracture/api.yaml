@@ -12,42 +12,21 @@ spec:
       labels:
         app: fracture-api
     spec:
+      volumes:
+      - name: fracture-api-persistent-storage
+        persistentVolumeClaim:
+          claimName: fracture-api-pv-claim
       containers:
         - name: fracture-api
-          image: 'appademin/fracture-api:0.0.4'
+          image: 'appademin/fracture-api:0.1.3'
           imagePullPolicy: Always
           ports:
-            - containerPort: 4000
+            - containerPort: 8080
               name: web
               protocol: TCP
-          env:
-          - name: NODE_ENV
-            value: production
-          - name: API_KEY
-            valueFrom:
-              secretKeyRef:
-                name: fracture-api-secret
-                key: api-key
-          - name: DB_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: postgres-secret
-                key: postgres-user
-          - name: DB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: postgres-secret
-                key: postgres-password
-          - name: DB_HOST
-            valueFrom:
-              configMapKeyRef:
-                name: postgres-configmap
-                key: postgres-host
-          - name: DB
-            valueFrom:
-              configMapKeyRef:
-                name: fracture-postgres-configmap
-                key: postgres-dbname
+          volumeMounts:
+          - mountPath: /pb/pb_data
+            name: fracture-api-persistent-storage
 ---
 apiVersion: v1
 kind: Service
@@ -58,4 +37,4 @@ spec:
     app: fracture-api
   ports:
     - protocol: TCP
-      port: 4000
+      port: 8080

@@ -13,25 +13,21 @@ class Api {
     api.options.baseUrl = baseUrl;
   }
 
-  Future createUser(String personalId) async {
+  Future testRequest() async {
     try {
-      Response response = await api.post(
-        '/users',
-        data: {
-          'personalId': personalId,
-        },
-      );
-      return response.statusCode == 200;
+      Response response = await api.get('/');
+      return response.data;
     } catch (e) {
       print(e);
     }
   }
 
-  Future giveConsent(String personalId, bool consent) async {
+  Future createUser(String personalId, [bool? consent]) async {
     try {
       Response response = await api.post(
-        '/$personalId/consent',
+        '/users',
         data: {
+          'personalId': personalId,
           'consent': consent,
         },
       );
@@ -41,27 +37,46 @@ class Api {
     }
   }
 
-  Future uploadData(
-      String personalId, DateTime? operationDate, List<HealthDataPoint> data) {
-    Map<String, dynamic> body = {
-      'personalId': personalId,
-      'data': data.map((e) => e.toJson()).toList(),
-    };
-    if (operationDate != null) {
-      body['eventDate'] = operationDate.toIso8601String();
+  Future uploadDataInChunks(String personalId, DateTime? operationDate,
+      List<HealthDataPoint> data) async {
+    // split up data into 10 equal chunks
+    List<Map<String, dynamic>> chunks = [];
+    int chunkSize = (data.length / 10).ceil();
+    for (int i = 0; i < data.length; i += chunkSize) {
+      int endIndex = i + chunkSize;
+      if (endIndex > data.length) {
+        endIndex = data.length;
+      }
+
+      Map<String, dynamic> body = {
+        'personalId': personalId,
+        'data': data.sublist(i, endIndex).map((e) => e.toJson()).toList(),
+      };
+      if (operationDate != null) {
+        body['eventDate'] = operationDate.toIso8601String();
+      }
+      chunks.add(body);
     }
 
-    Future request = api.post('/data', data: body);
-    return request;
+    // Function to handle a single chunk upload
+    Future<void> uploadChunk(Map<String, dynamic> chunk) async {
+      await api.post('/data', data: chunk);
+    }
+
+    // run all chunks in series
+    while (chunks.isNotEmpty) {
+      Map<String, dynamic> chunk = chunks.removeAt(0);
+      await uploadChunk(chunk);
+    }
   }
+
+  Future uploadData(String personalId, DateTime? operationDate,
+          List<HealthDataPoint> data) =>
+      uploadDataInChunks(personalId, operationDate, data);
 
   Future<bool> submitQuestionnaire(
       String personalId, String name, Map<String, dynamic> answers) async {
     try {
-      print({
-        'name': name,
-        'answers': answers,
-      });
       Response response = await api.post(
         '/$personalId/form',
         data: {

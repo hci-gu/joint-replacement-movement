@@ -107,8 +107,7 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
     }
 
     bool consent = ref.read(consentProvider);
-    await Api().createUser(personalId);
-    await Api().giveConsent(personalId, consent);
+    await Api().createUser(personalId, consent);
   }
 
   Future uploadData() async {
