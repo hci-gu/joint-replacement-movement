@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: dashboard
-          image: 'appademin/movement-dashboard:0.2.2'
+          image: 'appademin/movement-dashboard:0.3.0'
           ports:
             - containerPort: 8080
               name: web

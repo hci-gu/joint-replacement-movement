@@ -8,6 +8,7 @@ import 'package:movement_code/storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Api().init('https://jr-movement-api.prod.appadem.in');
+  Api().testRequest();
   await Storage().reloadPrefs();
   runApp(const ProviderScope(child: App()));
 }

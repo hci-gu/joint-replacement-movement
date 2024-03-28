@@ -1,10 +1,14 @@
 import { atom } from 'jotai'
-import axios from 'axios'
 import { atomFamily, atomWithDefault } from 'jotai/utils'
 import deepEqual from 'fast-deep-equal'
+import PocketBase from 'pocketbase'
 
-const API_URL = import.meta.env.VITE_API_URL
-const API_KEY = import.meta.env.VITE_API_KEY
+const pb = new PocketBase(import.meta.env.VITE_API_URL)
+
+pb.admins.authWithPassword(
+  import.meta.env.VITE_ADMIN_USERNAME,
+  import.meta.env.VITE_ADMIN_PASSWORD
+)
 
 export const dataTypes = [
   'steps',
@@ -16,12 +20,27 @@ export const dataTypes = [
 ]
 
 export const usersAtom = atomWithDefault(async (get, { signal }) => {
-  const response = await axios.get(`${API_URL}/users`, {
-    signal,
-    headers: { authorization: API_KEY },
-  })
+  const users = await pb.collection('users').getFullList({ signal })
 
-  return response.data
+  for (const user of users) {
+    for (const dataType of dataTypes) {
+      const first = await pb.collection(dataType).getList(0, 1, {
+        filter: `user = "${user.id}"`,
+        sort: 'date_from',
+      })
+      const last = await pb.collection(dataType).getList(0, 1, {
+        filter: `user = "${user.id}"`,
+        sort: '-date_from',
+      })
+
+      user[dataType] = {
+        first: first.items[0]?.date_from?.substring(0, 10),
+        last: last.items[0]?.date_from.substring(0, 10),
+      }
+    }
+  }
+
+  return users
 })
 
 export const groupByAtom = atom('day')
@@ -122,10 +141,11 @@ const groupStepsByInterval = (data, interval) => {
 export const dataAtom = atomFamily(
   ({ id, type }) =>
     atom(async (get) => {
-      const response = await axios.get(`${API_URL}/${type}/${id}`, {
-        headers: { authorization: API_KEY },
-      })
-      return response.data
+      const response = await pb
+        .collection(type)
+        .getFullList({ filter: `user = "${id}"` })
+
+      return response
     }),
   deepEqual
 )

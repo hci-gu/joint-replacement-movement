@@ -12,42 +12,21 @@ spec:
       labels:
         app: jr-movement-api
     spec:
+      volumes:
+      - name: jr-movement-api-persistent-storage
+        persistentVolumeClaim:
+          claimName: jr-movement-api-pv-claim
       containers:
         - name: jr-movement-api
-          image: 'appademin/jr-movement-api:0.2.2'
+          image: 'appademin/jr-movement-api:0.3.0'
           imagePullPolicy: Always
           ports:
-            - containerPort: 4000
+            - containerPort: 8080
               name: web
               protocol: TCP
-          env:
-          - name: NODE_ENV
-            value: production
-          - name: API_KEY
-            valueFrom:
-              secretKeyRef:
-                name: jr-movement-api-secret
-                key: api-key
-          - name: DB_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: postgres-secret
-                key: postgres-user
-          - name: DB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: postgres-secret
-                key: postgres-password
-          - name: DB_HOST
-            valueFrom:
-              configMapKeyRef:
-                name: postgres-configmap
-                key: postgres-host
-          - name: DB
-            valueFrom:
-              configMapKeyRef:
-                name: jrm-postgres-configmap
-                key: postgres-dbname
+          volumeMounts:
+          - mountPath: /pb/pb_data
+            name: jr-movement-api-persistent-storage
 ---
 apiVersion: v1
 kind: Service
@@ -58,4 +37,4 @@ spec:
     app: jr-movement-api
   ports:
     - protocol: TCP
-      port: 4000
+      port: 8080

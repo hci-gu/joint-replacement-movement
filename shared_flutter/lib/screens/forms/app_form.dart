@@ -139,6 +139,7 @@ class AppFormScreen extends HookConsumerWidget {
               await ref
                   .read(appFormProvider.notifier)
                   .submitQuestionnaire(personalId);
+              ref.invalidate(appFormDoneProvider);
               loading.value = false;
             },
             child: DefaultTextStyle(
