@@ -332,6 +332,7 @@ class AppForm extends ChangeNotifier {
     }
 
     Storage().storeQuestionnaireDone('questionnaire2');
+    notifyListeners();
   }
 
   Map<String, dynamic> getAnswers() {
@@ -343,5 +344,8 @@ class AppForm extends ChangeNotifier {
     };
   }
 }
+
+final appFormDoneProvider = StateProvider<bool>(
+    (ref) => Storage().getQuestionnaireDone('questionnaire2'));
 
 final appFormProvider = ChangeNotifierProvider<AppForm>((ref) => AppForm());

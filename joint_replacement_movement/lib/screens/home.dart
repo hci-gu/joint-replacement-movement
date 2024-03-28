@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/average_steps.dart';
 import 'package:movement_code/components/step_chart.dart';
 import 'package:movement_code/screens/forms/app_form.dart';
+import 'package:movement_code/state.dart';
 import 'package:movement_code/storage.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -104,12 +105,12 @@ class DataTab extends ConsumerWidget {
   }
 }
 
-class QuestionnaireTab extends StatelessWidget {
+class QuestionnaireTab extends ConsumerWidget {
   const QuestionnaireTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    bool questionnaireDone = Storage().getQuestionnaireDone('questionnaire2');
+  Widget build(BuildContext context, WidgetRef ref) {
+    bool questionnaireDone = ref.watch(appFormDoneProvider);
 
     if (questionnaireDone) {
       return const Column(
