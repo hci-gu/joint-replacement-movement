@@ -1,5 +1,5 @@
 import styled from '@emotion/styled'
-import React from 'react'
+import React, { Suspense, useState } from 'react'
 import DarkModeToggle from './components/DarkModeToggle'
 import {
   Anchor,
@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   Flex,
+  Pagination,
   SimpleGrid,
   Text,
 } from '@mantine/core'
@@ -40,7 +41,7 @@ const Users = () => {
       <SimpleGrid cols={2}>
         {users.map((u) => (
           <Card
-            key={`User_${u.personal_id}`}
+            key={`User_${u.id}`}
             shadow="sm"
             padding="xl"
             radius="md"
@@ -53,7 +54,7 @@ const Users = () => {
                 size="xl"
                 underline="always"
               >
-                {u.personal_id}
+                {u.username}
               </Anchor>
             </Card.Section>
             {dataTypes.map((k) => (
@@ -89,7 +90,9 @@ const App = () => {
           <Users />
         </Route>
         <Route path="/user/:id">
-          <User />
+          <Suspense fallback={() => <div>Loading users...</div>}>
+            <User />
+          </Suspense>
         </Route>
       </AppShell.Main>
     </AppShell>
