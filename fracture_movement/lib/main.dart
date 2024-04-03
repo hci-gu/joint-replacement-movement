@@ -1,23 +1,24 @@
 import 'package:flutter/cupertino.dart';
 import 'package:fracture_movement/screens/home.dart';
-import 'package:fracture_movement/screens/introduction.dart';
+import 'package:fracture_movement/screens/login.dart';
+import 'package:fracture_movement/screens/questionnaire/questionnaire.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/api.dart';
 import 'package:movement_code/storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Api().init('https://fracture-api.prod.appadem.in');
   // Api().init('https://fracture-api.prod.appadem.in');
-  // Api().init('http://localhost:4000');
+  Api().init('http://localhost:8090');
 
-  await Api().testRequest();
+  // await Api().testRequest();
   await Storage().reloadPrefs();
-  runApp(const ProviderScope(child: App()));
+  runApp(ProviderScope(child: App()));
 }
 
 class App extends StatelessWidget {
-  const App({super.key});
+  App({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,25 +30,33 @@ class App extends StatelessWidget {
           FocusManager.instance.primaryFocus?.unfocus();
         }
       },
-      child: const CupertinoApp(
-        home: CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemGroupedBackground,
-          child: ScreenSelector(),
-        ),
+      child: CupertinoApp.router(
+        debugShowCheckedModeBanner: false,
+        routerConfig: _router,
       ),
     );
   }
-}
 
-class ScreenSelector extends ConsumerWidget {
-  const ScreenSelector({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (Storage().getPersonalIdDone()) {
-      return const HomeScreen();
-    }
-
-    return const IntroductionScreen();
-  }
+  final _router = GoRouter(
+    initialLocation: '/questionnaire/1',
+    routes: [
+      GoRoute(
+        path: '/',
+        name: 'home',
+        builder: (context, state) => const HomeScreen(),
+        routes: [
+          GoRoute(
+            path: 'questionnaire/:id',
+            name: 'questionnaire',
+            builder: (context, state) => const QuestionnaireScreen(id: 'id'),
+          )
+        ],
+      ),
+      GoRoute(
+        path: '/login',
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+    ],
+  );
 }
