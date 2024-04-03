@@ -38,7 +38,7 @@ class App extends StatelessWidget {
   }
 
   final _router = GoRouter(
-    initialLocation: '/questionnaire/1',
+    initialLocation: '/questionnaire/profile',
     routes: [
       GoRoute(
         path: '/',
@@ -48,7 +48,9 @@ class App extends StatelessWidget {
           GoRoute(
             path: 'questionnaire/:id',
             name: 'questionnaire',
-            builder: (context, state) => const QuestionnaireScreen(id: 'id'),
+            builder: (context, state) => QuestionnaireScreen(
+              id: state.pathParameters['id'] ?? '',
+            ),
           )
         ],
       ),

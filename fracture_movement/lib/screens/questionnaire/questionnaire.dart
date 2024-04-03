@@ -44,17 +44,19 @@ class QuestionnaireScreen extends HookConsumerWidget {
                     questionnaire.setCurrentQuestion(value);
                   },
                   children: [
-                    for (var question in questionnaire.questions)
+                    for (var question in questionnaire.availableQuestions)
                       QuestionWidget(
                         question: question,
-                        onAnswer: (value) async {
+                        onAnswer: (value, [bool proceed = true]) async {
                           questionnaire.answer(value);
-                          await Future.delayed(
-                              const Duration(milliseconds: 500));
-                          controller.nextPage(
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut,
-                          );
+                          if (proceed) {
+                            await Future.delayed(
+                                const Duration(milliseconds: 500));
+                            controller.nextPage(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeInOut,
+                            );
+                          }
                         },
                         answer: questionnaire.answers[question.text],
                       ),
@@ -67,14 +69,15 @@ class QuestionnaireScreen extends HookConsumerWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        CupertinoButton.filled(
-                          padding: const EdgeInsets.all(12),
-                          child: const Icon(Icons.arrow_back),
-                          onPressed: () => controller.previousPage(
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut,
+                        if (questionnaire.currentQuestion > 0)
+                          CupertinoButton.filled(
+                            padding: const EdgeInsets.all(12),
+                            child: const Icon(Icons.arrow_back),
+                            onPressed: () => controller.previousPage(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeInOut,
+                            ),
                           ),
-                        ),
                         const SizedBox(width: 16),
                         CupertinoButton.filled(
                           child: questionnaire.isLast

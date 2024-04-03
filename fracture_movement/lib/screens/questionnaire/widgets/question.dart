@@ -61,31 +61,34 @@ class PainSlider extends HookWidget {
   Widget build(BuildContext context) {
     final sliderValue = useState(defaultValue.toDouble());
 
-    return Row(
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        Expanded(
-          child: CupertinoSlider(
-            value: sliderValue.value,
-            onChanged: (value) {
-              sliderValue.value = value;
-            },
-            onChangeEnd: (value) {
-              onAnswer(value.toInt());
-            },
-            min: 0,
-            max: 10,
-            divisions: 10,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Expanded(
+            child: CupertinoSlider(
+              value: sliderValue.value,
+              onChanged: (value) {
+                sliderValue.value = value;
+              },
+              onChangeEnd: (value) {
+                onAnswer(value.toInt());
+              },
+              min: 0,
+              max: 10,
+              divisions: 10,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 class QuestionWidget extends StatelessWidget {
   final Question question;
-  final void Function(dynamic) onAnswer;
+  final void Function(dynamic, [bool]) onAnswer;
   final dynamic answer;
 
   const QuestionWidget({
@@ -133,7 +136,10 @@ class QuestionWidget extends StatelessWidget {
             for (var option in question.options)
               CupertinoListTile(
                 onTap: () => onAnswer(option),
-                title: Text(option),
+                title: Text(
+                  option,
+                  maxLines: 3,
+                ),
                 trailing: answer == option
                     ? const Icon(CupertinoIcons.checkmark)
                     : null,
@@ -174,6 +180,18 @@ class QuestionWidget extends StatelessWidget {
               ),
             )
           ],
+        );
+      case QuestionType.date:
+        return SizedBox(
+          height: 250,
+          child: CupertinoDatePicker(
+            mode: CupertinoDatePickerMode.date,
+            maximumDate: DateTime.now().add(const Duration(days: 1)),
+            initialDateTime: answer ?? DateTime.now(),
+            onDateTimeChanged: (value) {
+              onAnswer(value, false);
+            },
+          ),
         );
       default:
         return const SizedBox.shrink();
