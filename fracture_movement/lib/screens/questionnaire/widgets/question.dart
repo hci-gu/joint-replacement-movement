@@ -90,11 +90,13 @@ class QuestionWidget extends StatelessWidget {
   final Question question;
   final void Function(dynamic, [bool]) onAnswer;
   final dynamic answer;
+  final String? errorMessage;
 
   const QuestionWidget({
     super.key,
     required this.question,
     required this.onAnswer,
+    this.errorMessage,
     this.answer,
   });
 
@@ -116,6 +118,18 @@ class QuestionWidget extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _question(),
+        if (errorMessage != null)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Text(
+                errorMessage!,
+                style: const TextStyle(
+                  color: CupertinoColors.destructiveRed,
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

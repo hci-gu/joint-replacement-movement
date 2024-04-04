@@ -4,10 +4,12 @@ final testQuestionnaire = Questionnaire(
   name: 'Hur går det?',
   questions: const [
     Question(
+      introduction: 'Intro 1',
       text: 'Test question pain',
       type: QuestionType.painScale,
     ),
     Question(
+      introduction: 'Intro 2',
       text: 'Test question Date',
       type: QuestionType.date,
     ),

@@ -1,24 +1,21 @@
 import 'package:flutter/cupertino.dart';
 
-class HorizontalBlockedScrollPhysics extends ScrollPhysics {
-  /// If [true] it blocks the left movement.
-  final bool blockLeftMovement;
+class BlockedScrollPhysics extends ScrollPhysics {
+  final bool blockBackwardsMovement;
+  final bool blockForwardsMovement;
 
-  /// If [true] it blocks the right movement.
-  final bool blockRightMovement;
-
-  const HorizontalBlockedScrollPhysics({
+  const BlockedScrollPhysics({
     ScrollPhysics? parent,
-    this.blockLeftMovement = false,
-    this.blockRightMovement = false,
+    this.blockBackwardsMovement = false,
+    this.blockForwardsMovement = false,
   }) : super(parent: parent);
 
   @override
-  HorizontalBlockedScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return HorizontalBlockedScrollPhysics(
+  BlockedScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return BlockedScrollPhysics(
       parent: buildParent(ancestor),
-      blockLeftMovement: blockLeftMovement,
-      blockRightMovement: blockRightMovement,
+      blockBackwardsMovement: blockBackwardsMovement,
+      blockForwardsMovement: blockForwardsMovement,
     );
   }
 
@@ -74,7 +71,7 @@ class HorizontalBlockedScrollPhysics extends ScrollPhysics {
     var delta = value - position.pixels;
 
     // We're moving left and we want to block.
-    if (isMovingLeft && blockLeftMovement && isPointInScreenLeftRange) {
+    if (isMovingLeft && blockForwardsMovement && isPointInScreenLeftRange) {
       if (pointInScreen.abs() < delta.abs()) {
         // fix for strong movements
         return pointInScreen;
@@ -83,7 +80,7 @@ class HorizontalBlockedScrollPhysics extends ScrollPhysics {
     }
 
     // We're moving right and we want to block.
-    if (!isMovingLeft && blockRightMovement && !isPointInScreenLeftRange) {
+    if (!isMovingLeft && blockBackwardsMovement && !isPointInScreenLeftRange) {
       return delta;
     }
 
@@ -101,14 +98,14 @@ class HorizontalBlockedScrollPhysics extends ScrollPhysics {
 /// LeftBlockedScrollPhysics();
 /// ```
 /// {@end-tool}
-class LeftBlockedScrollPhysics extends HorizontalBlockedScrollPhysics {
-  const LeftBlockedScrollPhysics({
+class BackwardsBlockedScrollPhysics extends BlockedScrollPhysics {
+  const BackwardsBlockedScrollPhysics({
     ScrollPhysics? parent,
-  }) : super(parent: parent, blockLeftMovement: true);
+  }) : super(parent: parent, blockBackwardsMovement: true);
 
   @override
-  LeftBlockedScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return LeftBlockedScrollPhysics(
+  BackwardsBlockedScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return BackwardsBlockedScrollPhysics(
       parent: buildParent(ancestor),
     );
   }
@@ -124,14 +121,14 @@ class LeftBlockedScrollPhysics extends HorizontalBlockedScrollPhysics {
 /// RightBlockedScrollPhysics();
 /// ```
 /// {@end-tool}
-class RightBlockedScrollPhysics extends HorizontalBlockedScrollPhysics {
-  const RightBlockedScrollPhysics({
+class ForwardBlockedScrollPhysics extends BlockedScrollPhysics {
+  const ForwardBlockedScrollPhysics({
     ScrollPhysics? parent,
-  }) : super(parent: parent, blockRightMovement: true);
+  }) : super(parent: parent, blockForwardsMovement: true);
 
   @override
-  RightBlockedScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return RightBlockedScrollPhysics(
+  ForwardBlockedScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return ForwardBlockedScrollPhysics(
       parent: buildParent(ancestor),
     );
   }

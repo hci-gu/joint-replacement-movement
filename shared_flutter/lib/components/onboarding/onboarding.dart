@@ -69,7 +69,7 @@ class CupertinoOnboarding extends HookWidget {
           Expanded(
             child: PageView(
               physics: nextPageDisabled
-                  ? const LeftBlockedScrollPhysics()
+                  ? const ForwardBlockedScrollPhysics()
                   : scrollPhysics,
               controller: pageController,
               children: pages,

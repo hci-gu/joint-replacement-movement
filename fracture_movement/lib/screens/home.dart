@@ -30,6 +30,14 @@ class Home extends StatelessWidget {
                 pathParameters: {'id': 'test'},
               ),
             ),
+            const SizedBox(height: 16),
+            CupertinoButton.filled(
+              child: const Text('SMFAformulär'),
+              onPressed: () => context.goNamed(
+                'questionnaire',
+                pathParameters: {'id': 'smfa'},
+              ),
+            ),
           ],
         ),
       ),
