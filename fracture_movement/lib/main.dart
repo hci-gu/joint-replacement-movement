@@ -38,7 +38,7 @@ class App extends StatelessWidget {
   }
 
   final _router = GoRouter(
-    initialLocation: '/questionnaire/smfa',
+    initialLocation: '/',
     routes: [
       GoRoute(
         path: '/',

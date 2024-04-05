@@ -48,6 +48,58 @@ class QuestionsIntroduction extends StatelessWidget {
   }
 }
 
+class SmallQuestionsIntroduction extends StatelessWidget {
+  final String text;
+
+  const SmallQuestionsIntroduction({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          color: CupertinoColors.systemGroupedBackground,
+          padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 13,
+              color: CupertinoColors.systemGrey,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        BackgroundWithOpacityGradient(
+          colors: [
+            CupertinoColors.systemGroupedBackground,
+            CupertinoColors.systemGroupedBackground.withOpacity(0),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class BackgroundWithOpacityGradient extends StatelessWidget {
+  final List<Color> colors;
+
+  const BackgroundWithOpacityGradient({super.key, this.colors = const []});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 8,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: colors,
+        ),
+      ),
+    );
+  }
+}
+
 class QuestionnaireScreen extends HookConsumerWidget {
   final String id;
 
@@ -114,17 +166,6 @@ class QuestionnaireScreen extends HookConsumerWidget {
               Expanded(
                 child: Stack(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        questionnaire.lastIntroduction,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: CupertinoColors.systemGrey,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
                     PageView(
                       controller: controller,
                       scrollDirection: Axis.vertical,
@@ -137,54 +178,80 @@ class QuestionnaireScreen extends HookConsumerWidget {
                       },
                       children: questionWidgets,
                     ),
+                    SmallQuestionsIntroduction(
+                      text: questionnaire.lastIntroduction,
+                    ),
+                    if (questionnaire.pageIndex > 0 ||
+                        !questionnaire.currentIsIntro)
+                      _bottomRow(questionnaire, controller, errorMessage, ref),
                   ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CupertinoButton.filled(
-                        padding: const EdgeInsets.all(12),
-                        onPressed: questionnaire.pageIndex > 0
-                            ? () => controller.previousPage(
-                                  duration: animationDuration,
-                                  curve: animationCurve,
-                                )
-                            : null,
-                        child: const Icon(Icons.keyboard_arrow_up),
-                      ),
-                      const SizedBox(width: 16),
-                      CupertinoButton.filled(
-                        padding: const EdgeInsets.all(12),
-                        onPressed: () {
-                          if (!questionnaire.canGoForward) {
-                            errorMessage.value = 'Du måste svara på frågan';
-                            return;
-                          }
-                          if (questionnaire.isLast) {
-                            questionnaire.submit();
-                            return;
-                          }
-
-                          controller.nextPage(
-                            duration: animationDuration,
-                            curve: animationCurve,
-                          );
-                        },
-                        child: questionnaire.isLast
-                            ? const Text('Skicka in')
-                            : const Icon(Icons.keyboard_arrow_down),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _bottomRow(Questionnaire questionnaire, PageController controller,
+      ValueNotifier<String?> errorMessage, WidgetRef ref) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Column(
+        children: [
+          BackgroundWithOpacityGradient(
+            colors: [
+              CupertinoColors.systemGroupedBackground.withOpacity(0),
+              CupertinoColors.systemGroupedBackground,
+            ],
+          ),
+          Container(
+            color: CupertinoColors.systemGroupedBackground,
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CupertinoButton.filled(
+                    padding: const EdgeInsets.all(12),
+                    onPressed: questionnaire.pageIndex > 0
+                        ? () => controller.previousPage(
+                              duration: animationDuration,
+                              curve: animationCurve,
+                            )
+                        : null,
+                    child: const Icon(Icons.keyboard_arrow_up),
+                  ),
+                  const SizedBox(width: 16),
+                  CupertinoButton.filled(
+                    padding: const EdgeInsets.all(12),
+                    onPressed: () {
+                      if (!questionnaire.canGoForward) {
+                        errorMessage.value = 'Du måste svara på frågan';
+                        return;
+                      }
+                      if (questionnaire.isLast) {
+                        questionnaire.submit();
+                        return;
+                      }
+
+                      controller.nextPage(
+                        duration: animationDuration,
+                        curve: animationCurve,
+                      );
+                    },
+                    child: questionnaire.isLast
+                        ? const Text('Skicka in')
+                        : const Icon(Icons.keyboard_arrow_down),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

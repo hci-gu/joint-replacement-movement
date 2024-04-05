@@ -28,6 +28,7 @@ class Question {
   final QuestionType type;
   final List<String> options;
   final String? introduction;
+  final String? placeholder;
   final Dependency? dependsOn;
 
   const Question({
@@ -35,6 +36,7 @@ class Question {
     this.type = QuestionType.text,
     this.options = const [],
     this.introduction,
+    this.placeholder,
     this.dependsOn,
   });
 }
@@ -42,19 +44,22 @@ class Question {
 class Questionnaire extends ChangeNotifier {
   final String name;
   final List<Question> questions;
-  late List<String> pageTypes;
   late Map<String, dynamic> answers;
   int pageIndex = 0;
 
   Questionnaire({required this.name, this.questions = const []}) {
     answers = {for (var question in questions) question.text: null};
-    pageTypes = [];
-    for (var question in questions) {
+  }
+
+  List<String> get pageTypes {
+    List<String> pages = [];
+    for (var question in availableQuestions) {
       if (question.introduction != null) {
-        pageTypes.add('intro');
+        pages.add('intro');
       }
-      pageTypes.add('question');
+      pages.add('question');
     }
+    return pages;
   }
 
   Question get current {
@@ -69,7 +74,7 @@ class Questionnaire extends ChangeNotifier {
 
   String get lastIntroduction {
     if (currentIsIntro) return '';
-    for (int i = pageIndex; i >= 0; i--) {
+    for (int i = min(availableQuestions.length - 1, pageIndex); i >= 0; i--) {
       if (availableQuestions[i].introduction != null) {
         return availableQuestions[i].introduction!;
       }
@@ -113,16 +118,18 @@ class Questionnaire extends ChangeNotifier {
 
   void submit() {
     print(answers);
+    notifyListeners();
   }
 }
 
-final questionnaireProvider = ChangeNotifierProvider.family((ref, id) {
+final questionnaireProvider =
+    ChangeNotifierProvider.family.autoDispose((ref, id) {
   switch (id) {
     case 'smfa':
-      return smfaQuestionnaire;
+      return smfaQuestionnaire();
     case 'profile':
-      return profileQuestionnaire;
+      return profileQuestionnaire();
     default:
-      return testQuestionnaire;
+      return testQuestionnaire();
   }
 });

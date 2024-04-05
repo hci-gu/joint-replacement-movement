@@ -2,9 +2,34 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 
+enum PainMedication {
+  paracetamol,
+  antiInflammatory,
+  shortActingMorphine,
+  longActingMorphine,
+  other,
+}
+
+extension PainMedicationExtension on PainMedication {
+  String get name {
+    switch (this) {
+      case PainMedication.paracetamol:
+        return 'Paracetamoltyp\n( ex Panodil, Alvedon )';
+      case PainMedication.antiInflammatory:
+        return 'Inflammationsdämpande värktabletter (ex. Ipren )';
+      case PainMedication.shortActingMorphine:
+        return 'Kortverkande morfintabletter\n( ex Oxynorm )';
+      case PainMedication.longActingMorphine:
+        return 'Långverkande morfintabletter\n( ex Oxycontin )';
+      case PainMedication.other:
+        return 'Annan typ';
+    }
+  }
+}
+
 class PainMedicationQuestion extends HookWidget {
   final Question question;
-  final void Function(String) onAnswer;
+  final void Function(dynamic, bool) onAnswer;
 
   const PainMedicationQuestion({
     super.key,
@@ -14,34 +39,37 @@ class PainMedicationQuestion extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final haveTakenMedication = useState(false);
+    ValueNotifier<Map<PainMedication, int>> painMedication =
+        useState(<PainMedication, int>{});
 
     return CupertinoListSection.insetGrouped(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       children: [
-        CupertinoListTile(
-          // onTap: () => onAnswer('option'),
-          title: Text('Jag har tagit värktabletter'),
-          trailing: CupertinoSwitch(
-            value: haveTakenMedication.value,
-            onChanged: (value) {
-              haveTakenMedication.value = value;
-            },
-          ),
-        ),
-        if (haveTakenMedication.value) ...[
+        for (var option in PainMedication.values)
           CupertinoListTile(
-            title: Column(
-              children: [
-                Text('Paracetamoltyp ( ex Panodil, Alvedon )'),
-              ],
+            title: Text(
+              option.name,
+              maxLines: 2,
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+            trailing: SizedBox(
+              width: 64,
+              child: CupertinoTextField(
+                placeholder: 'Antal',
+                textAlign: TextAlign.right,
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  painMedication.value[option] = int.tryParse(value) ?? 0;
+                  onAnswer(painMedication.value, false);
+                },
+              ),
             ),
           ),
-          CupertinoTextField(
-            placeholder: 'Vilken medicin har du tagit?',
-            onSubmitted: (value) {},
-          )
-        ],
+        CupertinoTextField(
+          placeholder: 'Vilken medicin har du tagit?',
+        )
       ],
     );
   }
@@ -137,11 +165,16 @@ class QuestionWidget extends StatelessWidget {
   Widget _question() {
     switch (question.type) {
       case QuestionType.text:
-        return CupertinoTextField(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          onSubmitted: (value) {
-            onAnswer(value);
-          },
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: CupertinoTextField(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+            placeholder: question.placeholder,
+            onChanged: (value) => onAnswer(value, false),
+            onSubmitted: (value) {
+              onAnswer(value);
+            },
+          ),
         );
       case QuestionType.singleChoice:
         return CupertinoListSection.insetGrouped(
