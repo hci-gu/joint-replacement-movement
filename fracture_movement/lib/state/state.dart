@@ -1,28 +1,66 @@
+import 'package:flutter/cupertino.dart';
+import 'package:fracture_movement/storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/state.dart';
 import 'package:personnummer/personnummer.dart';
+import 'package:pocketbase/pocketbase.dart';
 
-final canContinueProvider = Provider((ref) {
-  final step = ref.watch(onboardingStepProvider);
-  final personalId = ref.watch(personalIdProvider);
-  final dataUpload = ref.watch(dataUploadProvider);
-  final consent = ref.watch(consentProvider);
+class Credentials {
+  final String personalNumber;
+  final String password;
 
-  dataUpload?.then((value) {
-    ref.read(dataUploadProvider.notifier).state = null;
-    ref.invalidateSelf();
-  });
+  Credentials(this.personalNumber, this.password);
+}
 
-  switch (step) {
-    case 0:
-      return true;
-    case 1:
-      return Personnummer.valid(personalId) && consent;
-    case 2:
-      return dataUpload == null;
-    case 3:
-      return true;
-    default:
-      return false;
+final pb = PocketBase('http://127.0.0.1:8090');
+
+class Auth extends StateNotifier<RecordAuth?> {
+  Auth([Credentials? credentials]) : super(null) {
+    init(credentials);
   }
-});
+
+  Future<void> init(Credentials? credentials) async {
+    if (credentials == null) {
+      return;
+    }
+
+    state = await pb
+        .collection('users')
+        .authWithPassword(credentials.personalNumber, credentials.password);
+  }
+
+  Future login(Credentials credentials) async {
+    try {
+      state = await pb
+          .collection('users')
+          .authWithPassword(credentials.personalNumber, credentials.password);
+      Storage().storeCredentails(credentials);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future signup(Credentials credentials) async {
+    try {
+      await pb.collection('users').create(body: {
+        'username': credentials.personalNumber,
+        'password': credentials.password,
+        'passwordConfirm': credentials.password,
+      });
+
+      state = await pb
+          .collection('users')
+          .authWithPassword(credentials.personalNumber, credentials.password);
+      Storage().storeCredentails(credentials);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future logout() async {
+    state = null;
+    Storage().clearCredentials();
+  }
+}
+
+final authProvider = StateNotifierProvider<Auth, RecordAuth?>((ref) => Auth());

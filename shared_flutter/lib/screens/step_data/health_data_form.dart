@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/cupertino_date_text_box.dart';
 import 'package:movement_code/components/input_prefix.dart';
@@ -51,6 +52,10 @@ class HealthDataForm extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final textEditingController = useTextEditingController(
+      text: ref.watch(personalIdProvider),
+    );
+
     return Column(
       children: [
         CupertinoListSection(
@@ -59,7 +64,7 @@ class HealthDataForm extends HookConsumerWidget {
               ? 'Fyll i ditt personnummer och datumet då du opererades'
               : 'Fyll i ditt personnummer'),
           children: [
-            const PersonalNumberInput(),
+            PersonalNumberInput(controller: textEditingController),
             if (includeDate)
               Row(
                 mainAxisSize: MainAxisSize.max,

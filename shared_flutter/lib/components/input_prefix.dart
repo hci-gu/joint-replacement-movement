@@ -9,7 +9,7 @@ class InputPrefix extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 80,
+      width: 90,
       child: Padding(
         padding: const EdgeInsets.only(left: 8.0),
         child: error != null

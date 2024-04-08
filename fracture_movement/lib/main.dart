@@ -1,27 +1,42 @@
 import 'package:flutter/cupertino.dart';
+import 'package:fracture_movement/router.dart';
 import 'package:fracture_movement/screens/home.dart';
-import 'package:fracture_movement/screens/login.dart';
+import 'package:fracture_movement/screens/introduction/introduction.dart';
+import 'package:fracture_movement/screens/introduction/login.dart';
+import 'package:fracture_movement/screens/introduction/signup.dart';
 import 'package:fracture_movement/screens/questionnaire/questionnaire.dart';
+import 'package:fracture_movement/state/state.dart';
+import 'package:fracture_movement/storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/api.dart';
-import 'package:movement_code/storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Api().init('https://fracture-api.prod.appadem.in');
+  await Storage().reloadPrefs();
+  Credentials? credentials = Storage().getCredentials();
   Api().init('http://localhost:8090');
 
-  // await Api().testRequest();
-  await Storage().reloadPrefs();
-  runApp(ProviderScope(child: App()));
+  runApp(
+    ProviderScope(
+      overrides: credentials != null
+          ? [
+              authProvider.overrideWith((ref) => Auth(credentials)),
+            ]
+          : [],
+      child: App(),
+    ),
+  );
 }
 
-class App extends StatelessWidget {
+class App extends ConsumerWidget {
   App({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
     return GestureDetector(
       onTap: () {
         FocusScopeNode currentFocus = FocusScope.of(context);
@@ -32,33 +47,8 @@ class App extends StatelessWidget {
       },
       child: CupertinoApp.router(
         debugShowCheckedModeBanner: false,
-        routerConfig: _router,
+        routerConfig: router,
       ),
     );
   }
-
-  final _router = GoRouter(
-    initialLocation: '/',
-    routes: [
-      GoRoute(
-        path: '/',
-        name: 'home',
-        builder: (context, state) => const HomeScreen(),
-        routes: [
-          GoRoute(
-            path: 'questionnaire/:id',
-            name: 'questionnaire',
-            builder: (context, state) => QuestionnaireScreen(
-              id: state.pathParameters['id'] ?? '',
-            ),
-          )
-        ],
-      ),
-      GoRoute(
-        path: '/login',
-        name: 'login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-    ],
-  );
 }

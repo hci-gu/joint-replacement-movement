@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:fracture_movement/screens/questionnaire/questionnaires/profile.dart';
 import 'package:fracture_movement/screens/questionnaire/questionnaires/smfa.dart';
 import 'package:fracture_movement/screens/questionnaire/questionnaires/test.dart';
@@ -123,7 +122,7 @@ class Questionnaire extends ChangeNotifier {
 }
 
 final questionnaireProvider =
-    ChangeNotifierProvider.family.autoDispose((ref, id) {
+    ChangeNotifierProvider.autoDispose.family((ref, id) {
   switch (id) {
     case 'smfa':
       return smfaQuestionnaire();

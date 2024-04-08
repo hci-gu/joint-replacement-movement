@@ -30,32 +30,34 @@ class PersonalNumberFormatter extends TextInputFormatter {
 }
 
 class PersonalNumberInput extends HookConsumerWidget {
-  const PersonalNumberInput({super.key});
+  final TextEditingController controller;
+
+  const PersonalNumberInput({
+    super.key,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final focusNode = useFocusNode();
-    final textController =
-        useTextEditingController(text: ref.watch(personalIdProvider));
     ValueNotifier<String?> errorMessage = useState(null);
 
     useEffect(() {
       void listener() {
-        ref.read(personalIdProvider.notifier).state = textController.text;
-        if (Personnummer.valid(textController.text)) {
+        if (Personnummer.valid(controller.text)) {
           errorMessage.value = null;
         }
       }
 
-      textController.addListener(listener);
-      return () => textController.removeListener(listener);
-    }, [textController]);
+      controller.addListener(listener);
+      return () => controller.removeListener(listener);
+    }, [controller]);
 
     focusNode.addListener(() {
       if (!focusNode.hasFocus) {
-        if (textController.text.length < 13) {
+        if (controller.text.length < 13) {
           errorMessage.value = 'För kort';
-        } else if (!Personnummer.valid(textController.text)) {
+        } else if (!Personnummer.valid(controller.text)) {
           errorMessage.value = 'Ogiltigt';
         } else {
           errorMessage.value = null;
@@ -64,7 +66,7 @@ class PersonalNumberInput extends HookConsumerWidget {
     });
 
     return CupertinoTextField(
-      controller: textController,
+      controller: controller,
       focusNode: focusNode,
       keyboardType: const TextInputType.numberWithOptions(
         signed: true,

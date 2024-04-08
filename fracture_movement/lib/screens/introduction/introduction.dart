@@ -2,14 +2,16 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fracture_movement/state/state.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/personal_number_input.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class IntroductionScreen extends ConsumerWidget {
+  const IntroductionScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return CupertinoPageScaffold(
       child: Center(
         child: Padding(
@@ -38,11 +40,21 @@ class LoginScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 32),
-              const PersonalNumberInput(),
-              const SizedBox(height: 16),
               CupertinoButton.filled(
                 child: const Text('Skapa konto'),
-                onPressed: () => context.goNamed('home'),
+                onPressed: () => context.goNamed('signup'),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                '- Eller - ',
+                style: TextStyle(
+                  color: CupertinoColors.inactiveGray,
+                ),
+              ),
+              const SizedBox(height: 16),
+              CupertinoButton.filled(
+                child: const Text('Logga in'),
+                onPressed: () => context.goNamed('login'),
               ),
             ],
           ),

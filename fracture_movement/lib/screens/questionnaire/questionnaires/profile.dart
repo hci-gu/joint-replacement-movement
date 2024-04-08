@@ -1,5 +1,6 @@
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 
+// ignore: prefer_function_declarations_over_variables
 final profileQuestionnaire = () => Questionnaire(
       name: 'ProfilInformation',
       questions: const [
