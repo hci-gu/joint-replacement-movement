@@ -22,10 +22,14 @@ class IntroductionScreen extends ConsumerWidget {
         onPageChange: (page) async {
           ref.read(onboardingStepProvider.notifier).state = page;
           if (page == 2) {
+            ref.read(healthDataProvider.notifier).uploadData();
+          }
+        },
+        beforePageChange: () async {
+          if (ref.watch(onboardingStepProvider) == 1) {
             await ref
                 .read(healthDataProvider.notifier)
                 .createUserAndUploadConsent();
-            ref.read(healthDataProvider.notifier).uploadData();
           }
         },
         pages: [

@@ -163,11 +163,11 @@ extension QuestionDuration1Display on QuestionDuration1 {
       case QuestionDuration1.lessThan30:
         return 'Mindre än 30 minuter';
       case QuestionDuration1.between30And60:
-        return '30–60 minuter (0,5–1 timme)';
+        return '30-60 minuter (0,5-1 timme)';
       case QuestionDuration1.between60And90:
-        return '60–90 minuter (1–1,5 timmar)';
+        return '60-90 minuter (1-1,5 timmar)';
       case QuestionDuration1.between90And120:
-        return '90–120 minuter (1,5–2 timmar)';
+        return '90-120 minuter (1,5-2 timmar)';
       case QuestionDuration1.moreThan120:
         return 'Mer än 120 minuter (2 timmar)';
     }
@@ -192,13 +192,13 @@ extension QuestionDuration2Display on QuestionDuration2 {
       case QuestionDuration2.lessThan30:
         return 'Mindre än 30 minuter';
       case QuestionDuration2.between30And60:
-        return '30–60 minuter (0,5–1 timme)';
+        return '30-60 minuter (0,5-1 timme)';
       case QuestionDuration2.between60And90:
-        return '60–90 minuter (1–1,5 timmar)';
+        return '60-90 minuter (1-1,5 timmar)';
       case QuestionDuration2.between90And150:
-        return '90–150 minuter (1,5–2,5 timmar)';
+        return '90-150 minuter (1,5-2,5 timmar)';
       case QuestionDuration2.between150And300:
-        return '150–300 minuter (2,5–5 timmar)';
+        return '150-300 minuter (2,5-5 timmar)';
       case QuestionDuration2.moreThan300:
         return 'Mer än 300 minuter (5 timmar)';
     }
