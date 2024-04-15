@@ -26,6 +26,7 @@ const annoyanceOptions = [
 
 // ignore: prefer_function_declarations_over_variables
 final smfaQuestionnaire = () => Questionnaire(
+      id: 'smfa',
       name: 'SMFA',
       questions: const [
         Question(

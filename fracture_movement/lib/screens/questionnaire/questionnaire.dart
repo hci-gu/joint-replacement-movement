@@ -100,17 +100,20 @@ class BackgroundWithOpacityGradient extends StatelessWidget {
   }
 }
 
-class QuestionnaireScreen extends HookConsumerWidget {
-  final String id;
+class QuestionnaireWidget extends HookConsumerWidget {
+  final Questionnaire questionnaire;
+  final Function onAnswer;
+  final Function onPageChange;
 
-  const QuestionnaireScreen({
+  const QuestionnaireWidget({
     super.key,
-    required this.id,
+    required this.questionnaire,
+    required this.onAnswer,
+    required this.onPageChange,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final questionnaire = ref.watch(questionnaireProvider(id));
     ValueNotifier<String?> errorMessage = useState(null);
     final controller = usePageController();
     List<Widget> questionWidgets = [];
@@ -132,7 +135,7 @@ class QuestionnaireScreen extends HookConsumerWidget {
       questionWidgets.add(QuestionWidget(
         question: question,
         onAnswer: (value, [bool proceed = true]) async {
-          questionnaire.answer(value);
+          onAnswer(question.id, value);
           if (proceed) {
             await Future.delayed(answerDelay);
             controller.nextPage(
@@ -141,7 +144,7 @@ class QuestionnaireScreen extends HookConsumerWidget {
             );
           }
         },
-        answer: questionnaire.answers[question.text],
+        answer: questionnaire.answers[question.id],
         errorMessage: errorMessage.value,
       ));
     }
@@ -174,7 +177,7 @@ class QuestionnaireScreen extends HookConsumerWidget {
                           : const ForwardBlockedScrollPhysics(),
                       onPageChanged: (value) {
                         errorMessage.value = null;
-                        questionnaire.setPageIndex(value);
+                        onPageChange(value);
                       },
                       children: questionWidgets,
                     ),
@@ -234,7 +237,7 @@ class QuestionnaireScreen extends HookConsumerWidget {
                         return;
                       }
                       if (questionnaire.isLast) {
-                        questionnaire.submit();
+                        // questionnaire.submit();
                         return;
                       }
 
@@ -253,6 +256,45 @@ class QuestionnaireScreen extends HookConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class QuestionnaireScreen extends HookConsumerWidget {
+  final String id;
+
+  const QuestionnaireScreen({
+    super.key,
+    required this.id,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref.watch(questionnaireProvider(id)).when(
+          data: (questionnaire) => QuestionnaireWidget(
+            questionnaire: questionnaire,
+            onAnswer: (name, answer) {
+              ref.read(questionnaireProvider(id).notifier).answer(name, answer);
+            },
+            onPageChange: (value) {
+              ref.read(questionnaireProvider(id).notifier).setPageIndex(value);
+            },
+          ),
+          error: (_, __) {
+            return _page();
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+  }
+
+  Widget _page() {
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text('Frågeformulär'),
+      ),
+      child: Center(child: Text('halt!')),
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class QuestionnaireItem extends StatelessWidget {
   final String id;
@@ -53,44 +55,47 @@ class QuestionnaireItem extends StatelessWidget {
   }
 }
 
-class Home extends StatelessWidget {
+class Home extends ConsumerWidget {
   const Home({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const CupertinoPageScaffold(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CupertinoPageScaffold(
       child: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Att göra',
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
               ),
               // 2x2 grid of questionnaires
-              SizedBox(height: 16),
-              QuestionnaireItem(
-                id: 'profile',
-                name: 'Profil',
-                description: 'Engångsformulär ( ca 2 min )',
-                icon: Icon(Icons.person),
-              ),
-              SizedBox(height: 16),
-              QuestionnaireItem(
-                id: 'test',
-                name: 'Testformulär',
-                description: 'Testformulär för att testa appen',
-                icon: Icon(Icons.abc_sharp),
-              ),
-              SizedBox(height: 16),
-              QuestionnaireItem(
-                id: 'smfa',
-                name: 'SMFA Recall',
-                description: 'Engångsformulär ( ca 10min )',
-                icon: Icon(Icons.access_time),
-              ),
+              const SizedBox(height: 16),
+              ref.watch(questionnairesProvider).when(
+                    data: (List<Questionnaire> questionnaires) {
+                      return Column(
+                        children: [
+                          for (final questionnaire in questionnaires)
+                            QuestionnaireItem(
+                              id: questionnaire.id,
+                              name: questionnaire.name,
+                              description: 'TJENA',
+                              icon: Icon(CupertinoIcons.checkmark_seal),
+                            ),
+                        ],
+                      );
+                    },
+                    error: (_, __) {
+                      return const Center(
+                        child: Text('something went wrong'),
+                      );
+                    },
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
             ],
           ),
         ),

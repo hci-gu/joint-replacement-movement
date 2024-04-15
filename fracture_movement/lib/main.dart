@@ -1,13 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:fracture_movement/router.dart';
-import 'package:fracture_movement/screens/home.dart';
-import 'package:fracture_movement/screens/introduction/introduction.dart';
-import 'package:fracture_movement/screens/introduction/login.dart';
-import 'package:fracture_movement/screens/introduction/signup.dart';
-import 'package:fracture_movement/screens/questionnaire/questionnaire.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:fracture_movement/storage.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/api.dart';
 
@@ -25,13 +19,13 @@ void main() async {
               authProvider.overrideWith((ref) => Auth(credentials)),
             ]
           : [],
-      child: App(),
+      child: const App(),
     ),
   );
 }
 
 class App extends ConsumerWidget {
-  App({super.key});
+  const App({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

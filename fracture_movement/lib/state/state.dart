@@ -1,8 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:fracture_movement/pocketbase.dart';
 import 'package:fracture_movement/storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:movement_code/state.dart';
-import 'package:personnummer/personnummer.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 class Credentials {
@@ -11,8 +9,6 @@ class Credentials {
 
   Credentials(this.personalNumber, this.password);
 }
-
-final pb = PocketBase('http://127.0.0.1:8090');
 
 class Auth extends StateNotifier<RecordAuth?> {
   Auth([Credentials? credentials]) : super(null) {
@@ -64,3 +60,11 @@ class Auth extends StateNotifier<RecordAuth?> {
 }
 
 final authProvider = StateNotifierProvider<Auth, RecordAuth?>((ref) => Auth());
+
+Future submitQuestionnaire(String name, Map<String, dynamic> answers) async {
+  await pb.collection('questionnaires').create(body: {
+    'name': name,
+    'user': pb.authStore.model!.id,
+    'answers': answers,
+  });
+}
