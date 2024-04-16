@@ -19,3 +19,21 @@ Future<Questionnaire> getQuestionnaire(String id) async {
 
   return Questionnaire.fromRecord(res);
 }
+
+Future submitQuestionnaire(
+    Questionnaire questionnaire, String userId, DateTime startDate) async {
+  await pb.collection('answers').create(
+    body: {
+      'user': userId,
+      'questionnaire': questionnaire.id,
+      'answers': questionnaire.answers,
+      'started': startDate.toIso8601String(),
+    },
+  );
+}
+
+// Future getAnswers(String userId) async {
+//   final res = await pb.collection('answers').getFullList();
+
+//   return res;
+// }

@@ -61,10 +61,10 @@ class Auth extends StateNotifier<RecordAuth?> {
 
 final authProvider = StateNotifierProvider<Auth, RecordAuth?>((ref) => Auth());
 
-Future submitQuestionnaire(String name, Map<String, dynamic> answers) async {
-  await pb.collection('questionnaires').create(body: {
-    'name': name,
-    'user': pb.authStore.model!.id,
-    'answers': answers,
-  });
-}
+// Future submitQuestionnaire(String name, Map<String, dynamic> answers) async {
+//   await pb.collection('questionnaires').create(body: {
+//     'name': name,
+//     'user': pb.authStore.model!.id,
+//     'answers': answers,
+//   });
+// }

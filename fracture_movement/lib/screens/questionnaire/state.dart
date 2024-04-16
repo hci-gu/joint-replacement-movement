@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:fracture_movement/pocketbase.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -145,6 +144,17 @@ class Questionnaire {
     return true;
   }
 
+  bool get canSubmit {
+    return availableQuestions.every((question) {
+      if (question.dependsOn != null) {
+        return answers[question.dependsOn!.question] ==
+            question.dependsOn!.answer;
+      }
+
+      return answers[question.id] != null;
+    });
+  }
+
   Questionnaire copyWith({
     String? name,
     String? id,
@@ -176,6 +186,7 @@ class Questionnaire {
 class QuestionnaireNotifier
     extends AutoDisposeFamilyAsyncNotifier<Questionnaire, String> {
   final Map<String, dynamic> answers = {};
+  final DateTime startDate = DateTime.now();
 
   @override
   build(String arg) => getQuestionnaire(arg);
@@ -184,7 +195,6 @@ class QuestionnaireNotifier
     state = await AsyncValue.guard(() async {
       return state.value!.copyWith(pageIndex: index);
     });
-    // state = Questionnaire(name: state., id: id)
   }
 
   void answer(String question, dynamic answer) async {
@@ -195,6 +205,16 @@ class QuestionnaireNotifier
       answers[question] = answer;
       return state.value!.copyWith(answers: answers);
     });
+  }
+
+  Future submit() async {
+    if (state.value != null) {
+      await submitQuestionnaire(
+        state.value!,
+        ref.read(authProvider)!.record!.id,
+        startDate,
+      );
+    }
   }
 }
 
