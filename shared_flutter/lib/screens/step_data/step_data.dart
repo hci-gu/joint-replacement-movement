@@ -22,7 +22,7 @@ class StepDataScreen extends HookConsumerWidget {
     ValueNotifier<bool> loading = useState(false);
 
     return AlreadyDoneWrapper(
-      alreadyDone: Storage().getPersonalIdDone(),
+      alreadyDone: false,
       child: loading.value
           ? _loading()
           : ref.watch(healthDataProvider).when(
@@ -47,6 +47,7 @@ class StepDataScreen extends HookConsumerWidget {
     if (data.hasData) {
       return Scrollbar(
         child: ListView(
+          shrinkWrap: true,
           children: [
             CupertinoListSection(
               header: const Text('Data från "Hälsa" appen'),
@@ -55,7 +56,7 @@ class StepDataScreen extends HookConsumerWidget {
                   HealthListTile(items: data.itemsForType(type), type: type),
               ],
             ),
-            HealthDataForm(includeDate: includeDate),
+            // HealthDataForm(includeDate: includeDate),
           ],
         ),
       );

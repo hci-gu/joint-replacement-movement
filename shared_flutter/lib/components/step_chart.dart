@@ -50,20 +50,6 @@ final chartDataProvider = FutureProvider<ChartData>((ref) async {
   DateTime? eventDate = ref.watch(operationDateProvider);
   Period period = ref.watch(periodProvider);
 
-  // return ChartData([
-  //   DataPoint(DateTime(2022, 2, 22), 3912),
-  //   DataPoint(DateTime(2022, 3, 22), 4321),
-  //   DataPoint(DateTime(2022, 4, 22), 3121),
-  //   DataPoint(DateTime(2022, 5, 22), 3400), // date
-  //   DataPoint(DateTime(2022, 5, 23), 1231),
-  //   DataPoint(DateTime(2022, 5, 24), 912),
-  //   DataPoint(DateTime(2022, 5, 25), 2102),
-  //   DataPoint(DateTime(2022, 5, 26), 2182),
-  //   DataPoint(DateTime(2022, 5, 27), 2790),
-  //   DataPoint(DateTime(2022, 5, 28), 3841),
-  //   DataPoint(DateTime(2022, 5, 29), 5212),
-  // ], DateTime(2022, 5, 22));
-
   if (eventDate == null) {
     return ChartData([], DateTime.now());
   }

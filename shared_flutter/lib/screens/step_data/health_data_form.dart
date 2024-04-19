@@ -52,10 +52,6 @@ class HealthDataForm extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final textEditingController = useTextEditingController(
-      text: ref.watch(personalIdProvider),
-    );
-
     return Column(
       children: [
         CupertinoListSection(
@@ -64,7 +60,6 @@ class HealthDataForm extends HookConsumerWidget {
               ? 'Fyll i ditt personnummer och datumet då du opererades'
               : 'Fyll i ditt personnummer'),
           children: [
-            PersonalNumberInput(controller: textEditingController),
             if (includeDate)
               Row(
                 mainAxisSize: MainAxisSize.max,
@@ -72,7 +67,7 @@ class HealthDataForm extends HookConsumerWidget {
                   const InputPrefix(text: 'Datum'),
                   Expanded(
                     child: CupertinoDateTextBox(
-                      initialValue: ref.watch(operationDateProvider),
+                      initialValue: DateTime.now(),
                       onDateChange: (value) {
                         ref.read(operationDateProvider.notifier).state = value;
                       },
@@ -83,7 +78,7 @@ class HealthDataForm extends HookConsumerWidget {
               ),
           ],
         ),
-        if (includeConsent) const ConsentCheckbox(),
+        // if (includeConsent) const ConsentCheckbox(),
       ],
     );
   }

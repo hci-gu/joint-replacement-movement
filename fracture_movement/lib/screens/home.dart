@@ -1,21 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
+import 'package:fracture_movement/screens/step_data.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:movement_code/components/step_chart.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class QuestionnaireItem extends StatelessWidget {
-  final String id;
-  final String name;
-  final String description;
-  final Icon icon;
+  final Questionnaire questionnaire;
 
   const QuestionnaireItem({
     super.key,
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.icon,
+    required this.questionnaire,
   });
 
   @override
@@ -28,30 +25,56 @@ class QuestionnaireItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: CupertinoColors.systemGrey4),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            icon,
-            const SizedBox(width: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox.shrink(),
+                if (questionnaire.answered)
+                  const Icon(
+                    CupertinoIcons.checkmark_alt,
+                    color: CupertinoColors.systemGreen,
+                  ),
+              ],
+            ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name),
+                Text(questionnaire.name),
                 Text(
                   description,
                   maxLines: 2,
                   style: const TextStyle(
-                      color: CupertinoColors.systemGrey, fontSize: 14),
+                    color: CupertinoColors.systemGrey,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
           ],
         ),
       ),
-      onTap: () => context.goNamed(
-        'questionnaire',
-        pathParameters: {'id': id},
-      ),
+      onTap: () {
+        if (questionnaire.answered) {
+          return;
+        }
+        context.goNamed(
+          'questionnaire',
+          pathParameters: {'id': questionnaire.id},
+        );
+      },
     );
+  }
+
+  String get description {
+    if (questionnaire.answered && questionnaire.lastAnswered != null) {
+      return timeago.format(questionnaire.lastAnswered!, locale: 'sv');
+    }
+
+    return questionnaire.occurance.display;
   }
 }
 
@@ -68,21 +91,23 @@ class Home extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Att göra',
+                'Idag',
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
               ),
               // 2x2 grid of questionnaires
               const SizedBox(height: 16),
               ref.watch(questionnairesProvider).when(
                     data: (List<Questionnaire> questionnaires) {
-                      return Column(
+                      return GridView.count(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        shrinkWrap: true,
+                        childAspectRatio: 1.3,
                         children: [
                           for (final questionnaire in questionnaires)
                             QuestionnaireItem(
-                              id: questionnaire.id,
-                              name: questionnaire.name,
-                              description: 'TJENA',
-                              icon: Icon(CupertinoIcons.checkmark_seal),
+                              questionnaire: questionnaire,
                             ),
                         ],
                       );
@@ -115,11 +140,7 @@ class HomeScreen extends StatelessWidget {
           case 0:
             return const Home();
           case 1:
-            return const CupertinoPageScaffold(
-              child: Center(
-                child: Text('Stegdata'),
-              ),
-            );
+            return const StepDataScreen();
           case 2:
             return CupertinoPageScaffold(
               child: Center(

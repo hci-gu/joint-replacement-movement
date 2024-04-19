@@ -20,6 +20,7 @@ dependencies:
   pocketbase: ^0.18.1
   shared_preferences: ^2.2.2
   flutter_widget_from_html_core: ^0.14.11
+  timeago: ^3.6.1
   movement_code:
     path: ../shared_flutter
 

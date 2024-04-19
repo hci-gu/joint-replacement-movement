@@ -33,7 +33,7 @@
     },
     {
       "name": "device_info_plus",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/device_info_plus-9.1.0",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/device_info_plus-9.1.2",
       "packageUri": "lib/",
       "languageVersion": "2.18"
     },
@@ -51,15 +51,15 @@
     },
     {
       "name": "ffi",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/ffi-2.1.0",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/ffi-2.1.2",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.3"
     },
     {
       "name": "file",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/file-6.1.4",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/file-7.0.0",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.0"
     },
     {
       "name": "flutter",
@@ -104,46 +104,64 @@
       "languageVersion": "2.12"
     },
     {
-      "name": "matcher",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/matcher-0.12.16",
+      "name": "leak_tracker",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/leak_tracker-10.0.0",
       "packageUri": "lib/",
-      "languageVersion": "2.18"
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "leak_tracker_flutter_testing",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/leak_tracker_flutter_testing-2.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "leak_tracker_testing",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/leak_tracker_testing-2.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "matcher",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/matcher-0.12.16+1",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
     },
     {
       "name": "material_color_utilities",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/material_color_utilities-0.5.0",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/material_color_utilities-0.8.0",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     },
     {
       "name": "meta",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/meta-1.10.0",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/meta-1.11.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
     {
       "name": "path",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/path-1.8.3",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/path-1.9.0",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.0"
     },
     {
       "name": "platform",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/platform-3.1.2",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/platform-3.1.4",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.0"
     },
     {
       "name": "plugin_platform_interface",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/plugin_platform_interface-2.1.6",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/plugin_platform_interface-2.1.8",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.0"
     },
     {
       "name": "process",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/process-4.2.4",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/process-5.0.2",
       "packageUri": "lib/",
-      "languageVersion": "2.14"
+      "languageVersion": "3.0"
     },
     {
       "name": "sky_engine",
@@ -201,33 +219,27 @@
     },
     {
       "name": "vm_service",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/vm_service-11.10.0",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/vm_service-13.0.0",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
-    },
-    {
-      "name": "web",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/web-0.3.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.2"
+      "languageVersion": "3.0"
     },
     {
       "name": "webdriver",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/webdriver-3.0.2",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/webdriver-3.0.3",
       "packageUri": "lib/",
       "languageVersion": "2.18"
     },
     {
       "name": "win32",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/win32-5.0.9",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/win32-5.4.0",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.3"
     },
     {
       "name": "win32_registry",
-      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/win32_registry-1.1.2",
+      "rootUri": "file:///Users/sebastianandreasson/.pub-cache/hosted/pub.dev/win32_registry-1.1.3",
       "packageUri": "lib/",
-      "languageVersion": "3.1"
+      "languageVersion": "3.3"
     },
     {
       "name": "health",
@@ -236,7 +248,7 @@
       "languageVersion": "2.17"
     }
   ],
-  "generated": "2024-01-22T10:03:41.846494Z",
+  "generated": "2024-04-19T08:32:11.354886Z",
   "generator": "pub",
-  "generatorVersion": "3.2.3"
+  "generatorVersion": "3.3.4"
 }

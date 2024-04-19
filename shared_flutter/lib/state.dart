@@ -142,8 +142,7 @@ final healthDataProvider =
 final personalIdProvider =
     StateProvider<String>((ref) => Storage().getPersonalid() ?? '');
 final consentProvider = StateProvider<bool>((ref) => false);
-final operationDateProvider =
-    StateProvider<DateTime?>((ref) => Storage().getEventDate());
+final operationDateProvider = StateProvider<DateTime?>((ref) => DateTime.now());
 final onboardingStepProvider = StateProvider((ref) => 0);
 
 enum QuestionDuration1 {

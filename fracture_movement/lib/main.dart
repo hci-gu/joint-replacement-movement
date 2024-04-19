@@ -4,13 +4,15 @@ import 'package:fracture_movement/state/state.dart';
 import 'package:fracture_movement/storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/api.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  timeago.setLocaleMessages('sv', timeago.SvMessages());
   // Api().init('https://fracture-api.prod.appadem.in');
   await Storage().reloadPrefs();
   Credentials? credentials = Storage().getCredentials();
-  Api().init('http://localhost:8090');
+  Api().init('http://192.168.0.33:8090');
 
   runApp(
     ProviderScope(

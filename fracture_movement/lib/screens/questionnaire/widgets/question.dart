@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
+import 'package:movement_code/screens/step_data/health_data_form.dart';
+import 'package:movement_code/screens/step_data/step_data.dart';
 
 enum PainMedication {
   paracetamol,
@@ -240,6 +242,8 @@ class QuestionWidget extends StatelessWidget {
             },
           ),
         );
+      case QuestionType.stepDataAccess:
+        return StepDataScreen();
       default:
         return const SizedBox.shrink();
     }

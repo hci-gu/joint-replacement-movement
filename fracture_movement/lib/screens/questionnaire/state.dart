@@ -4,6 +4,29 @@ import 'package:fracture_movement/pocketbase.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'package:collection/collection.dart';
+
+class Answer {
+  final String questionnaireId;
+  final Map<String, dynamic> answers;
+  final DateTime created;
+
+  const Answer({
+    required this.questionnaireId,
+    required this.answers,
+    required this.created,
+  });
+
+  factory Answer.fromRecord(RecordModel record) {
+    final Map<String, dynamic> data = record.data;
+
+    return Answer(
+      questionnaireId: data['questionnaire'],
+      answers: data['answers'],
+      created: DateTime.parse(record.created),
+    );
+  }
+}
 
 enum QuestionType {
   text,
@@ -12,6 +35,51 @@ enum QuestionType {
   painMedication,
   painScale,
   date,
+  stepDataAccess
+}
+
+QuestionType questionTypeForString(String value) {
+  return QuestionType.values
+      .firstWhere((e) => e.toString() == 'QuestionType.$value');
+}
+
+enum Occurance {
+  once,
+  daily,
+  weekly,
+  monthly,
+}
+
+extension OccuranceExtensions on Occurance {
+  String get display {
+    switch (this) {
+      case Occurance.once:
+        return 'Engångs';
+      case Occurance.daily:
+        return 'Dagligen';
+      case Occurance.weekly:
+        return 'Veckovis';
+      case Occurance.monthly:
+        return 'Månadsvis';
+    }
+  }
+
+  Duration get duration {
+    switch (this) {
+      case Occurance.once:
+        return const Duration(days: 0);
+      case Occurance.daily:
+        return const Duration(days: 1);
+      case Occurance.weekly:
+        return const Duration(days: 7);
+      case Occurance.monthly:
+        return const Duration(days: 30);
+    }
+  }
+}
+
+Occurance occuranceFromString(String value) {
+  return Occurance.values.firstWhere((e) => e.toString() == 'Occurance.$value');
 }
 
 class Dependency {
@@ -77,16 +145,22 @@ class Question {
 class Questionnaire {
   final String name;
   final String id;
+  final String description;
+  final Occurance occurance;
   final List<Question> questions;
   final Map<String, dynamic> answers;
   final int pageIndex;
+  late DateTime? lastAnswered;
 
-  const Questionnaire({
+  Questionnaire({
     required this.name,
     required this.id,
+    this.occurance = Occurance.once,
+    this.description = '',
     this.questions = const [],
     this.answers = const {},
     this.pageIndex = 0,
+    this.lastAnswered,
   });
 
   List<String> get pageTypes {
@@ -155,6 +229,16 @@ class Questionnaire {
     });
   }
 
+  bool get answered {
+    if (lastAnswered != null) {
+      if (occurance == Occurance.once) {
+        return true;
+      }
+      return lastAnswered!.isAfter(DateTime.now().subtract(occurance.duration));
+    }
+    return false;
+  }
+
   Questionnaire copyWith({
     String? name,
     String? id,
@@ -178,6 +262,8 @@ class Questionnaire {
     return Questionnaire(
       id: record.id,
       name: record.data['name'],
+      occurance: occuranceFromString(record.data['occurance'] ?? 'once'),
+      description: record.data['description'] ?? '',
       questions: questions,
     );
   }
@@ -214,13 +300,31 @@ class QuestionnaireNotifier
         ref.read(authProvider)!.record!.id,
         startDate,
       );
+      ref.invalidate(answersProvider);
     }
   }
 }
 
 final questionnairesProvider = FutureProvider<List<Questionnaire>>((ref) async {
-  return getQuestionnaires();
+  List<Questionnaire> questionnaires = await getQuestionnaires();
+  List<Answer> answers = await ref.watch(answersProvider.future);
+
+  for (var questionnaire in questionnaires) {
+    Answer? answer = answers.firstWhereOrNull(
+      (element) => element.questionnaireId == questionnaire.id,
+    );
+
+    if (answer != null) {
+      questionnaire.lastAnswered = answer.created;
+    }
+  }
+
+  questionnaires.sortBy((element) => element.lastAnswered ?? DateTime.now());
+
+  return questionnaires.reversed.toList();
 });
 
 final questionnaireProvider = AutoDisposeAsyncNotifierProviderFamily<
     QuestionnaireNotifier, Questionnaire, String>(QuestionnaireNotifier.new);
+
+final answersProvider = FutureProvider<List<Answer>>((ref) => getAnswers());

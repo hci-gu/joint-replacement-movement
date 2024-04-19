@@ -32,8 +32,16 @@ Future submitQuestionnaire(
   );
 }
 
-// Future getAnswers(String userId) async {
-//   final res = await pb.collection('answers').getFullList();
+Future<List<Answer>> getAnswers() async {
+  try {
+    final res = await pb.collection('answers').getFullList(
+          sort: '-created',
+        );
 
-//   return res;
-// }
+    List<Answer> answers = res.map((e) => Answer.fromRecord(e)).toList();
+    return answers;
+  } catch (e) {
+    print(e);
+    return [];
+  }
+}
