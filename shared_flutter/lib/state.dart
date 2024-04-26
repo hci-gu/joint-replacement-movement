@@ -54,19 +54,24 @@ class HealthData {
   bool get hasData => data.values.any((element) => element.isNotEmpty);
 }
 
-class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
+class HealthDataManager
+    extends AutoDisposeFamilyAsyncNotifier<HealthData, DateTime> {
   HealthFactory health = HealthFactory();
   bool isAuthorized = false;
   bool authorizationFailed = false;
   bool triedToAuthorize = false;
 
   @override
-  FutureOr<HealthData> build() async {
-    final now = DateTime.now();
-    final fiveYearsAgo = now.subtract(const Duration(days: 365 * 5));
+  FutureOr<HealthData> build(DateTime arg) async {
+    final dataFrom = DateTime(
+      arg.year - 1,
+      arg.month,
+      arg.day,
+    );
+    final dataTo = DateTime.now();
 
     List<HealthDataPoint> healthData =
-        await health.getHealthDataFromTypes(fiveYearsAgo, now, types);
+        await health.getHealthDataFromTypes(dataFrom, dataTo, types);
     Map<HealthDataType, List<HealthDataPoint>> healthDataMap = {};
 
     for (var type in types) {
@@ -100,42 +105,22 @@ class HealthDataManager extends AutoDisposeAsyncNotifier<HealthData> {
     ref.invalidateSelf();
   }
 
-  Future createUserAndUploadConsent() async {
-    String personalId = ref.read(personalIdProvider);
-    if (personalId.isEmpty) {
+  Future uploadData(String personalId) async {
+    if (ref.watch(dataUploadProvider) != null ||
+        state.value == null ||
+        state.value!.allItems.isEmpty) {
       return;
     }
-
-    bool consent = ref.read(consentProvider);
-    await Api().createUser(personalId, consent);
-  }
-
-  Future uploadData() async {
-    if (ref.watch(dataUploadProvider) != null) {
-      return;
-    }
-
-    String personalId = ref.read(personalIdProvider);
-    DateTime? operationDate = ref.read(operationDateProvider);
-
-    if (state.value == null || state.value!.allItems.isEmpty) {
-      return;
-    }
-    Future request =
-        Api().uploadData(personalId, operationDate, state.value!.allItems);
+    Future request = Api().uploadData(personalId, state.value!.allItems);
 
     ref.read(dataUploadProvider.notifier).state = request;
-    request.then((_) {
-      Storage().storePersonalId(personalId);
-      Storage().storeEventDate(operationDate!);
-    });
   }
 }
 
 final dataUploadProvider = StateProvider<Future?>((ref) => null);
 
-final healthDataProvider =
-    AsyncNotifierProvider.autoDispose<HealthDataManager, HealthData>(
+final healthDataProvider = AutoDisposeAsyncNotifierProviderFamily<
+    HealthDataManager, HealthData, DateTime>(
   HealthDataManager.new,
 );
 

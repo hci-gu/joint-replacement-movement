@@ -26,7 +26,7 @@ class IntroductionScreen extends ConsumerWidget {
         onPageChange: (page) {
           ref.read(onboardingStepProvider.notifier).state = page;
           if (page == 2) {
-            ref.read(healthDataProvider.notifier).uploadData();
+            // ref.read(healthDataProvider.notifier).uploadData();
           }
           if (page == 3) {
             ref

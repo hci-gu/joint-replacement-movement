@@ -31,6 +31,20 @@ class Storage {
     prefs.remove('password');
   }
 
+  Future storeEventDate(DateTime date) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    prefs.setInt('eventDate', date.millisecondsSinceEpoch);
+  }
+
+  DateTime? getEventDate() {
+    int? millisecondsSinceEpoch = prefs.getInt('eventDate');
+    if (millisecondsSinceEpoch != null) {
+      return DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
+    }
+    return null;
+  }
+
   static final Storage _instance = Storage._internal();
   factory Storage() {
     return _instance;

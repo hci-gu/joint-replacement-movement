@@ -25,7 +25,7 @@ class SignupScreen extends HookConsumerWidget {
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text('Logga in'),
+        middle: Text('Skapa konto'),
       ),
       child: Center(
         child: Padding(

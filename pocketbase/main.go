@@ -64,6 +64,7 @@ func main() {
 	})
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		e.Router.Use(middleware.Decompress())
 		e.Router.Use(middleware.BodyLimit(200 * 1024 * 1024))
 
 		e.Router.GET("/test", func(c echo.Context) error {
@@ -147,20 +148,25 @@ func main() {
 				return echo.NewHTTPError(http.StatusInternalServerError, "Failed to handle user")
 			}
 
-			// Group data by data_type
-			dataGroups := groupDataByType(reqBody.Data)
+			c.NoContent(http.StatusOK)
 
-			app.Dao().RunInTransaction(func(txDao *daos.Dao) error {
-				// Process each data group in batches
-				for dataType, items := range dataGroups {
-					if err := processInBatches(txDao, dataType, user, items, 5000); err != nil {
-						return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save data")
+			// Start processing the data in a goroutine
+			go func() {
+				// Group data by data_type
+				dataGroups := groupDataByType(reqBody.Data)
+
+				app.Dao().RunInTransaction(func(txDao *daos.Dao) error {
+					// Process each data group in batches
+					for dataType, items := range dataGroups {
+						if err := processInBatches(txDao, dataType, user, items, 5000); err != nil {
+							return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save data")
+						}
 					}
-				}
-				return nil
-			})
+					return nil
+				})
+			}()
 
-			return c.NoContent(http.StatusOK)
+			return nil
 		})
 
 		return nil

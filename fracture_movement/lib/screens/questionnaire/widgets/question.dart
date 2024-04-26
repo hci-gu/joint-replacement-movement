@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
+import 'package:fracture_movement/screens/questionnaire/widgets/step_data.dart';
 import 'package:movement_code/screens/step_data/health_data_form.dart';
 import 'package:movement_code/screens/step_data/step_data.dart';
 
@@ -120,12 +121,14 @@ class QuestionWidget extends StatelessWidget {
   final Question question;
   final void Function(dynamic, [bool]) onAnswer;
   final dynamic answer;
+  final dynamic valueFromQuestion;
   final String? errorMessage;
 
   const QuestionWidget({
     super.key,
     required this.question,
     required this.onAnswer,
+    this.valueFromQuestion,
     this.errorMessage,
     this.answer,
   });
@@ -243,7 +246,10 @@ class QuestionWidget extends StatelessWidget {
           ),
         );
       case QuestionType.stepDataAccess:
-        return StepDataScreen();
+        return StepDataQuestion(
+          date: valueFromQuestion as DateTime,
+          onAnswer: (permission) => onAnswer(permission),
+        );
       default:
         return const SizedBox.shrink();
     }

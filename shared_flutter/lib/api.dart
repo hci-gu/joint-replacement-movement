@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:movement_code/state.dart';
 
@@ -37,8 +39,8 @@ class Api {
     }
   }
 
-  Future uploadDataInChunks(String personalId, DateTime? operationDate,
-      List<HealthDataPoint> data) async {
+  Future uploadDataInChunks(
+      String personalId, List<HealthDataPoint> data) async {
     // split up data into 10 equal chunks
     List<Map<String, dynamic>> chunks = [];
     int chunkSize = (data.length / 10).ceil();
@@ -52,15 +54,21 @@ class Api {
         'personalId': personalId,
         'data': data.sublist(i, endIndex).map((e) => e.toJson()).toList(),
       };
-      if (operationDate != null) {
-        body['eventDate'] = operationDate.toIso8601String();
-      }
       chunks.add(body);
     }
 
     // Function to handle a single chunk upload
     Future<void> uploadChunk(Map<String, dynamic> chunk) async {
-      await api.post('/data', data: chunk);
+      await api.post(
+        '/data',
+        options: Options(
+          headers: {
+            'Content-Encoding': 'gzip',
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+        ),
+        data: gzip.encode(utf8.encode(jsonEncode(chunk))),
+      );
     }
 
     // run all chunks in series
@@ -70,9 +78,8 @@ class Api {
     }
   }
 
-  Future uploadData(String personalId, DateTime? operationDate,
-          List<HealthDataPoint> data) =>
-      uploadDataInChunks(personalId, operationDate, data);
+  Future uploadData(String personalId, List<HealthDataPoint> data) =>
+      uploadDataInChunks(personalId, data);
 
   Future<bool> submitQuestionnaire(
       String personalId, String name, Map<String, dynamic> answers) async {

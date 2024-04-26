@@ -1,7 +1,7 @@
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:pocketbase/pocketbase.dart';
 
-final pb = PocketBase('http://127.0.0.1:8090');
+final pb = PocketBase('http://192.168.0.33:8090');
 
 Future<List<Questionnaire>> getQuestionnaires() async {
   final res = await pb.collection('questionnaires').getList(
@@ -26,7 +26,7 @@ Future submitQuestionnaire(
     body: {
       'user': userId,
       'questionnaire': questionnaire.id,
-      'answers': questionnaire.answers,
+      'answers': questionnaire.answersToSubmit,
       'started': startDate.toIso8601String(),
     },
   );

@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:fracture_movement/pocketbase.dart';
 import 'package:fracture_movement/state/state.dart';
+import 'package:fracture_movement/storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:movement_code/state.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:collection/collection.dart';
 
@@ -97,6 +99,7 @@ class Question {
   final String? introduction;
   final String? placeholder;
   final Dependency? dependsOn;
+  final String? valueFromQuestion;
 
   const Question({
     this.id = '',
@@ -106,6 +109,7 @@ class Question {
     this.introduction,
     this.placeholder,
     this.dependsOn,
+    this.valueFromQuestion,
   });
 
   factory Question.fromRecord(RecordModel record) {
@@ -138,6 +142,7 @@ class Question {
           data['introduction'].isNotEmpty ? data['introduction'] : null,
       placeholder: data['placeholder'].isNotEmpty ? data['placeholder'] : null,
       dependsOn: dependsOn,
+      valueFromQuestion: data['valueFromQuestion'],
     );
   }
 }
@@ -239,6 +244,27 @@ class Questionnaire {
     return false;
   }
 
+  Map<String, dynamic> get answersToSubmit {
+    Map<String, dynamic> answersToSubmit = {};
+    // loop through all values in answers
+    for (var key in answers.keys) {
+      // check if value is DateTime
+      if (answers[key] is DateTime) {
+        // convert to iso8601 string
+        answersToSubmit[key] = (answers[key] as DateTime).toIso8601String();
+      } else {
+        // otherwise just copy the value
+        answersToSubmit[key] = answers[key];
+      }
+    }
+    return answersToSubmit;
+  }
+
+  bool get containsStepDataAccess {
+    return questions
+        .any((element) => element.type == QuestionType.stepDataAccess);
+  }
+
   Questionnaire copyWith({
     String? name,
     String? id,
@@ -300,6 +326,16 @@ class QuestionnaireNotifier
         ref.read(authProvider)!.record!.id,
         startDate,
       );
+      if (state.value!.containsStepDataAccess) {
+        // find answer of type date in answers
+        DateTime date = state.value!.answers.values
+            .firstWhere((element) => element is DateTime) as DateTime;
+
+        String? personalId = Storage().getCredentials()?.personalNumber;
+        if (personalId != null) {
+          ref.read(healthDataProvider(date).notifier).uploadData(personalId);
+        }
+      }
       ref.invalidate(answersProvider);
     }
   }

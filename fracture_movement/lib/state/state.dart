@@ -20,9 +20,14 @@ class Auth extends StateNotifier<RecordAuth?> {
       return;
     }
 
-    state = await pb
-        .collection('users')
-        .authWithPassword(credentials.personalNumber, credentials.password);
+    try {
+      state = await pb
+          .collection('users')
+          .authWithPassword(credentials.personalNumber, credentials.password);
+    } catch (e) {
+      Storage().clearCredentials();
+      rethrow;
+    }
   }
 
   Future login(Credentials credentials) async {

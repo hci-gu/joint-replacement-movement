@@ -11,7 +11,7 @@ class RedoPermissions extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useOnAppLifecycleStateChange((previous, current) {
       if (current == AppLifecycleState.resumed) {
-        ref.read(healthDataProvider.notifier).authorize();
+        ref.read(healthDataProvider(DateTime.now()).notifier).authorize();
       }
     });
 

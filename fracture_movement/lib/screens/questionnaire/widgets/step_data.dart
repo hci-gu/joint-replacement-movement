@@ -1,36 +1,30 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:movement_code/components/already_done_wrapper.dart';
-import 'package:movement_code/screens/step_data/health_data_form.dart';
 import 'package:movement_code/screens/step_data/health_list_tile.dart';
 import 'package:movement_code/screens/step_data/redo_permissions.dart';
 import 'package:movement_code/state.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:movement_code/storage.dart';
 
-class StepDataScreen extends HookConsumerWidget {
-  final bool includeDate;
+class StepDataQuestion extends HookConsumerWidget {
+  final DateTime date;
+  final Function(bool) onAnswer;
 
-  const StepDataScreen({
+  const StepDataQuestion({
     super.key,
-    this.includeDate = true,
+    required this.onAnswer,
+    required this.date,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ValueNotifier<bool> loading = useState(false);
 
-    return AlreadyDoneWrapper(
-      alreadyDone: false,
-      child: loading.value
-          ? _loading()
-          : ref.watch(healthDataProvider(DateTime.now())).when(
-                data: (data) => _body(ref, data, loading),
-                error: _error,
-                loading: _loading,
-              ),
-    );
+    return ref.watch(healthDataProvider(date)).when(
+          data: (data) => _body(ref, data, loading),
+          error: _error,
+          loading: _loading,
+        );
   }
 
   Widget _error(_, __) {
@@ -56,7 +50,18 @@ class StepDataScreen extends HookConsumerWidget {
                   HealthListTile(items: data.itemsForType(type), type: type),
               ],
             ),
-            // HealthDataForm(includeDate: includeDate),
+            Center(
+              child: CupertinoButton.filled(
+                child: const Text(
+                  'Fortsätt',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                onPressed: () => onAnswer(true),
+              ),
+            )
           ],
         ),
       );
@@ -83,9 +88,8 @@ class StepDataScreen extends HookConsumerWidget {
             ),
             onPressed: () async {
               loading.value = true;
-              await ref
-                  .read(healthDataProvider(DateTime.now()).notifier)
-                  .authorize();
+              await ref.read(healthDataProvider(date).notifier).authorize();
+              onAnswer(true);
               loading.value = false;
             },
           ),

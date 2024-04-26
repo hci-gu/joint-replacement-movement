@@ -14,7 +14,7 @@ class StepDataScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
           children: [
             Text(
-              'Dn stegdata',
+              'Din stegdata',
               style: CupertinoTheme.of(context)
                   .textTheme
                   .navTitleTextStyle

@@ -34,7 +34,7 @@ class RouterNotifier extends ChangeNotifier {
   bool _isLoginRoute(String route) {
     return route == '/introduction' ||
         route == '/introduction/login' ||
-        route == '/introduction/register';
+        route == '/introduction/signup';
   }
 }
 
@@ -64,15 +64,15 @@ final routerProvider = Provider((ref) {
         builder: (context, state) => const IntroductionScreen(),
         routes: [
           GoRoute(
+            path: 'signup',
+            name: 'signup',
+            builder: (context, state) => const SignupScreen(),
+          ),
+          GoRoute(
             path: 'login',
             name: 'login',
             builder: (context, state) => const LoginScreen(),
           ),
-          GoRoute(
-            path: 'signup',
-            name: 'signup',
-            builder: (context, state) => const SignupScreen(),
-          )
         ],
       ),
     ],

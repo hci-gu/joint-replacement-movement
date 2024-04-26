@@ -141,6 +141,9 @@ class QuestionnaireWidget extends HookConsumerWidget {
         },
         answer: questionnaire.answers[question.id],
         errorMessage: errorMessage.value,
+        valueFromQuestion: question.valueFromQuestion != null
+            ? questionnaire.answers[question.valueFromQuestion]
+            : null,
       ));
     }
 

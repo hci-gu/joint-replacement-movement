@@ -31,11 +31,7 @@ extension PeriodToDays on Period {
 final periodProvider = StateProvider((ref) => Period.week);
 
 final stepDataProvider = FutureProvider<List<HealthDataPoint>>((ref) async {
-  DateTime? eventDate = ref.watch(operationDateProvider);
-
-  if (eventDate == null) {
-    return [];
-  }
+  DateTime eventDate = DateTime.now().subtract(Duration(days: 30));
 
   DateTime threeMonthsBefore = eventDate.subtract(const Duration(days: 90));
   DateTime threeMonthsAfter = eventDate.add(const Duration(days: 90));
@@ -47,12 +43,8 @@ final stepDataProvider = FutureProvider<List<HealthDataPoint>>((ref) async {
 });
 
 final chartDataProvider = FutureProvider<ChartData>((ref) async {
-  DateTime? eventDate = ref.watch(operationDateProvider);
+  DateTime eventDate = DateTime.now().subtract(Duration(days: 30));
   Period period = ref.watch(periodProvider);
-
-  if (eventDate == null) {
-    return ChartData([], DateTime.now());
-  }
 
   List<HealthDataPoint> stepData = await ref.watch(stepDataProvider.future);
   DateTime dataUntil = eventDate.add(Duration(days: period.days + 1));
@@ -106,7 +98,7 @@ final chartDataProvider = FutureProvider<ChartData>((ref) async {
   Map<int, List<DataPoint>> monthMap = {0: [], 1: [], 2: []};
   for (DataPoint point in pointsBefore) {
     int month = pointsBefore.indexOf(point) ~/ 30;
-    monthMap[month]!.add(point);
+    monthMap[month]?.add(point);
   }
 
   List<DataPoint> monthsBeforePoints = monthMap.entries.map((e) {
@@ -363,7 +355,7 @@ class StepDataChart extends StatelessWidget {
                     getTooltipItems: (List<LineBarSpot> lineBarsSpot) {
                       return lineBarsSpot.map((lineBarSpot) {
                         return LineTooltipItem(
-                          'Operation\n$date',
+                          'Fraktur\n$date',
                           const TextStyle(
                             color: CupertinoColors.white,
                             fontWeight: FontWeight.bold,
