@@ -8,6 +8,7 @@ import 'package:movement_code/storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Api().init('https://fracture-api.prod.appadem.in');
+  // Api().init('http://192.168.0.33:8090');
   // Api().init('https://fracture-api.prod.appadem.in');
   // Api().init('http://localhost:4000');
 

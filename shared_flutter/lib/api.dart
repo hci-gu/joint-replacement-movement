@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:movement_code/state.dart';
 
@@ -60,7 +63,17 @@ class Api {
 
     // Function to handle a single chunk upload
     Future<void> uploadChunk(Map<String, dynamic> chunk) async {
-      await api.post('/data', data: chunk);
+      // await api.post('/data', data: chunk);
+      await api.post(
+        '/data',
+        options: Options(
+          headers: {
+            'Content-Encoding': 'gzip',
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+        ),
+        data: gzip.encode(utf8.encode(jsonEncode(chunk))),
+      );
     }
 
     // run all chunks in series

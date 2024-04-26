@@ -18,7 +18,7 @@ spec:
           claimName: fracture-api-pv-claim
       containers:
         - name: fracture-api
-          image: 'appademin/fracture-api:0.1.3'
+          image: 'appademin/fracture-api:0.1.4'
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

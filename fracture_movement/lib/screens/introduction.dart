@@ -36,7 +36,7 @@ class IntroductionScreen extends ConsumerWidget {
           OnboardingFeaturesPage(
             title: const Text('Brytpunkten'),
             description: const Text(
-              'Välkommen till mobilapplikationen ”Brytpunkten”. Nedan har du en överblick över allt som krävs för att komma i gång. Det tar endast en par minuter och behöver enbart genomföras vid ett tillfälle.',
+              'Välkommen till mobilapplikationen ”Brytpunkten”. Nedan har du en överblick över allt som krävs för att komma i gång. Det tar endast ett par minuter och behöver enbart genomföras vid ett tillfälle.',
             ),
             features: [
               OnboardingFeature(
@@ -44,37 +44,31 @@ class IntroductionScreen extends ConsumerWidget {
                   CupertinoIcons.lock,
                   color: CupertinoColors.systemRed.resolveFrom(context),
                 ),
-                title: const Text('Din stegdata'),
-                description: const Text(
-                  'Du behöver ge oss tillgång till din stegdata',
-                ),
+                title: const Text('1. Stegdata'),
+                description: const SizedBox.shrink(),
               ),
               OnboardingFeature(
                 icon: Icon(
                   CupertinoIcons.person,
                   color: CupertinoColors.systemRed.resolveFrom(context),
                 ),
-                title: const Text('Ange personnr'),
-                description: const Text(
-                  'Ange ditt personnummer och ge samtycke för att ladda upp din stegdata',
-                ),
+                title: const Text('2. Personuppgifter och samtycke'),
+                description: const SizedBox.shrink(),
               ),
               OnboardingFeature(
                 icon: Icon(
                   CupertinoIcons.cloud_upload,
                   color: CupertinoColors.systemRed.resolveFrom(context),
                 ),
-                title: const Text('Uppladdning av stegdata'),
-                description: const Text(
-                  'Under tiden stegdatan laddas upp behöver du inte göra någonting. Detta tar ungefär 30 sekunder.',
-                ),
+                title: const Text('3. Uppladdning av stegdata'),
+                description: const SizedBox.shrink(),
               ),
             ],
           ),
           const CupertinoOnboardingPage(
             title: Text('Din stegdata'),
             description: Text(
-              'Du behöver ge oss tillgång till din stegdata genom ”Hälsa” applikationen på din Iphone.',
+              'Du behöver ge oss tillgång till din stegdata genom ”Hälsa” applikationen på din Iphone.\n\n Se till att välj "Slå på alla" för att det ska fungera korrekt.',
             ),
             bodyPadding: EdgeInsets.zero,
             body: StepDataScreen(
@@ -92,7 +86,8 @@ class IntroductionScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 ref.watch(dataUploadProvider) == null
-                    ? const Text('Uppladding färdig, du kan nu stänga av appen')
+                    ? const Text(
+                        'Uppladdning färdig, du kan nu stänga av appen')
                     : const UploadProgress(),
               ],
             ),

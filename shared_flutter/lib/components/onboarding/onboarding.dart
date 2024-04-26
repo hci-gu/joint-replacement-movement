@@ -129,6 +129,7 @@ class CupertinoOnboardingPage extends StatelessWidget {
     required this.body,
     this.description,
     this.bodyPadding = const EdgeInsets.only(left: 20, right: 15),
+    this.descriptionPadding = const EdgeInsets.only(bottom: 0, top: 16),
     this.bodyToBottomSpacing = 0,
     this.titleFlex = 3,
     super.key,
@@ -138,6 +139,7 @@ class CupertinoOnboardingPage extends StatelessWidget {
   final Widget? description;
   final Widget body;
   final EdgeInsets bodyPadding;
+  final EdgeInsets descriptionPadding;
   final double bodyToBottomSpacing;
   final int titleFlex;
 
@@ -162,7 +164,7 @@ class CupertinoOnboardingPage extends StatelessWidget {
         ),
         if (description != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: descriptionPadding,
             child: DefaultTextStyle(
               textAlign: TextAlign.justify,
               style: TextStyle(
@@ -233,6 +235,7 @@ class OnboardingFeaturesPage extends StatelessWidget {
       description: description,
       bodyPadding: bodyPadding,
       bodyToBottomSpacing: bodyToBottomSpacing,
+      descriptionPadding: const EdgeInsets.only(bottom: 24, top: 16),
       titleFlex: titleFlex,
       body: ListView(
         children: [
