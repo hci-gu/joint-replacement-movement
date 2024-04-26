@@ -58,6 +58,23 @@ class Auth extends StateNotifier<RecordAuth?> {
     }
   }
 
+  Future updatePassword(String newPassword) async {
+    try {
+      Credentials? credentials = Storage().getCredentials();
+      await pb.collection('users').update(state!.record!.id, body: {
+        'oldPassword': credentials?.password,
+        'password': newPassword,
+        'passwordConfirm': newPassword,
+      });
+      Storage().storeCredentails(Credentials(
+        credentials!.personalNumber,
+        newPassword,
+      ));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future logout() async {
     state = null;
     Storage().clearCredentials();

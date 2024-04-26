@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fracture_movement/screens/profile.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/screens/step_data.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:movement_code/components/step_chart.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class QuestionnaireItem extends StatelessWidget {
@@ -141,20 +141,7 @@ class HomeScreen extends StatelessWidget {
           case 1:
             return const StepDataScreen();
           case 2:
-            return CupertinoPageScaffold(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Profil'),
-                    CupertinoButton(
-                      child: const Text('Logga ut'),
-                      onPressed: () => context.goNamed('login'),
-                    ),
-                  ],
-                ),
-              ),
-            );
+            return const ProfileScreen();
           default:
             return const SizedBox.shrink();
         }
