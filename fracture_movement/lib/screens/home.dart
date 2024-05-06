@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fracture_movement/screens/profile.dart';
+import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/screens/step_data.dart';
 import 'package:go_router/go_router.dart';

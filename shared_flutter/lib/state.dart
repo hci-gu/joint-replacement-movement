@@ -54,6 +54,28 @@ class HealthData {
   bool get hasData => data.values.any((element) => element.isNotEmpty);
 }
 
+Future uploadLatestHealthData(String personalId, DateTime from) async {
+  HealthFactory health = HealthFactory();
+  List<HealthDataPoint> healthData =
+      await health.getHealthDataFromTypes(from, DateTime.now(), types);
+  Map<HealthDataType, List<HealthDataPoint>> healthDataMap = {};
+
+  for (var type in types) {
+    healthDataMap[type] =
+        healthData.where((element) => element.type == type).toList();
+  }
+  healthDataMap.removeWhere((key, value) => value.isEmpty);
+
+  HealthData data = HealthData(
+    healthDataMap,
+    isAuthorized: true,
+    authorizationFailed: false,
+    triedToAuthorize: true,
+  );
+
+  await Api().uploadData(personalId, data.allItems);
+}
+
 class HealthDataManager
     extends AutoDisposeFamilyAsyncNotifier<HealthData, DateTime> {
   HealthFactory health = HealthFactory();
@@ -63,15 +85,8 @@ class HealthDataManager
 
   @override
   FutureOr<HealthData> build(DateTime arg) async {
-    final dataFrom = DateTime(
-      arg.year - 1,
-      arg.month,
-      arg.day,
-    );
-    final dataTo = DateTime.now();
-
     List<HealthDataPoint> healthData =
-        await health.getHealthDataFromTypes(dataFrom, dataTo, types);
+        await health.getHealthDataFromTypes(arg, DateTime.now(), types);
     Map<HealthDataType, List<HealthDataPoint>> healthDataMap = {};
 
     for (var type in types) {

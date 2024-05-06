@@ -20,7 +20,13 @@ class StepDataQuestion extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ValueNotifier<bool> loading = useState(false);
 
-    return ref.watch(healthDataProvider(date)).when(
+    return ref
+        .watch(healthDataProvider(DateTime(
+          date.year - 1,
+          date.month,
+          date.day,
+        )))
+        .when(
           data: (data) => _body(ref, data, loading),
           error: _error,
           loading: _loading,
@@ -88,7 +94,13 @@ class StepDataQuestion extends HookConsumerWidget {
             ),
             onPressed: () async {
               loading.value = true;
-              await ref.read(healthDataProvider(date).notifier).authorize();
+              await ref
+                  .read(healthDataProvider(DateTime(
+                    date.year - 1,
+                    date.month,
+                    date.day,
+                  )).notifier)
+                  .authorize();
               onAnswer(true);
               loading.value = false;
             },

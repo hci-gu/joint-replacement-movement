@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:movement_code/components/password_input.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class UpdatePasswordForm extends HookConsumerWidget {
@@ -43,16 +44,14 @@ class UpdatePasswordForm extends HookConsumerWidget {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
-        CupertinoTextField(
+        PasswordInput(
           controller: passwordController,
           placeholder: 'Nytt Lösenord',
-          obscureText: true,
         ),
         const SizedBox(height: 16),
-        CupertinoTextField(
+        PasswordInput(
           controller: confirmPasswordController,
           placeholder: 'Upprepa Lösenord',
-          obscureText: true,
         ),
         const SizedBox(height: 16),
         Center(

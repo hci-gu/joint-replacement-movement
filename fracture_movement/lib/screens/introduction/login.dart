@@ -3,12 +3,14 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/personal_number_input.dart';
+import 'package:movement_code/components/password_input.dart';
 
 class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ValueNotifier<bool> isLoading = useState(false);
     final personalIdController = useTextEditingController(
       text: '',
     );
@@ -49,31 +51,24 @@ class LoginScreen extends HookConsumerWidget {
               const SizedBox(height: 32),
               PersonalNumberInput(controller: personalIdController),
               const SizedBox(height: 16),
-              CupertinoTextField(
-                controller: passwordController,
-                placeholder: 'Lösenord',
-                obscureText: true,
-              ),
+              PasswordInput(controller: passwordController),
               const SizedBox(height: 16),
               CupertinoButton.filled(
-                child: const Text('Logga in'),
-                onPressed: () async {
-                  try {
-                    await ref.read(authProvider.notifier).login(
-                          Credentials(
-                            personalIdController.text,
-                            passwordController.text,
-                          ),
-                        );
-                  } catch (e) {
-                    // showCupertinoModalPopup(
-                    //   context: context,
-                    //   builder: (ctx) => Center(
-                    //     child: Text('Hallå eller'),
-                    //   ),
-                    // );
-                  }
-                },
+                onPressed: isLoading.value
+                    ? null
+                    : () async {
+                        try {
+                          await ref.read(authProvider.notifier).login(
+                                Credentials(
+                                  personalIdController.text,
+                                  passwordController.text,
+                                ),
+                              );
+                        } catch (e) {}
+                      },
+                child: isLoading.value
+                    ? const CupertinoActivityIndicator()
+                    : const Text('Logga in'),
               ),
             ],
           ),

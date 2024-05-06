@@ -2,10 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
+import 'package:fracture_movement/pocketbase.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/screens/questionnaire/widgets/question.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:movement_code/state.dart';
 import 'package:movement_code/utils/single_direction_scroll.dart';
 
 const animationCurve = Curves.easeInOut;
@@ -130,8 +132,8 @@ class QuestionnaireWidget extends HookConsumerWidget {
       questionWidgets.add(QuestionWidget(
         question: question,
         onAnswer: (value, [bool proceed = true]) async {
-          onAnswer(question.id, value);
-          if (proceed && !questionnaire.isLast) {
+          bool canProceed = await onAnswer(question.id, value);
+          if (proceed && canProceed) {
             await Future.delayed(answerDelay);
             controller.nextPage(
               duration: animationDuration,
@@ -280,9 +282,9 @@ class QuestionnaireScreen extends HookConsumerWidget {
     return ref.watch(questionnaireProvider(id)).when(
           data: (questionnaire) => QuestionnaireWidget(
             questionnaire: questionnaire,
-            onAnswer: (name, answer) {
-              ref.read(questionnaireProvider(id).notifier).answer(name, answer);
-            },
+            onAnswer: (name, answer) => ref
+                .read(questionnaireProvider(id).notifier)
+                .answer(name, answer),
             onPageChange: (value) {
               ref.read(questionnaireProvider(id).notifier).setPageIndex(value);
             },
@@ -290,8 +292,17 @@ class QuestionnaireScreen extends HookConsumerWidget {
           error: (_, __) {
             return _page();
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
+          loading: () => CupertinoPageScaffold(
+            navigationBar: CupertinoNavigationBar(
+              leading: CupertinoNavigationBarBackButton(
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              middle: const Text('-'),
+            ),
+            backgroundColor: CupertinoColors.systemGroupedBackground,
+            child: const Center(
+              child: CupertinoActivityIndicator(),
+            ),
           ),
         );
   }

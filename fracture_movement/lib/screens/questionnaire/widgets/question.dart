@@ -1,9 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fracture_movement/screens/questionnaire/state.dart';
+import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/widgets/step_data.dart';
-import 'package:movement_code/screens/step_data/health_data_form.dart';
-import 'package:movement_code/screens/step_data/step_data.dart';
 
 enum PainMedication {
   paracetamol,
@@ -42,14 +40,14 @@ class PainMedicationQuestion extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    ValueNotifier<Map<PainMedication, int>> painMedication =
-        useState(<PainMedication, int>{});
+    ValueNotifier<Map<String, int>> painMedication = useState(<String, int>{});
 
     return CupertinoListSection.insetGrouped(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       children: [
         for (var option in PainMedication.values)
           CupertinoListTile(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             title: Text(
               option.name,
               maxLines: 2,
@@ -64,14 +62,15 @@ class PainMedicationQuestion extends HookWidget {
                 textAlign: TextAlign.right,
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
-                  painMedication.value[option] = int.tryParse(value) ?? 0;
+                  painMedication.value[option.name] = int.tryParse(value) ?? 0;
                   onAnswer(painMedication.value, false);
                 },
               ),
             ),
           ),
-        CupertinoTextField(
-          placeholder: 'Vilken medicin har du tagit?',
+        const CupertinoTextField(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          placeholder: 'Om annan typ vilken medicin har du tagit?',
         )
       ],
     );
@@ -92,27 +91,73 @@ class PainSlider extends HookWidget {
   Widget build(BuildContext context) {
     final sliderValue = useState(defaultValue.toDouble());
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Expanded(
-            child: CupertinoSlider(
-              value: sliderValue.value,
-              onChanged: (value) {
-                sliderValue.value = value;
-              },
-              onChangeEnd: (value) {
-                onAnswer(value.toInt());
-              },
-              min: 0,
-              max: 10,
-              divisions: 10,
-            ),
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Ingen\nsmärta',
+                style: TextStyle(
+                  color: CupertinoColors.systemGrey,
+                  fontSize: 13,
+                ),
+              ),
+              Text(
+                'Värsta\ntänkbara\nsmärta',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: CupertinoColors.systemGrey,
+                  fontSize: 13,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(
+              11,
+              (index) => Text(
+                '$index',
+                style: sliderValue.value == index
+                    ? const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      )
+                    : const TextStyle(
+                        color: CupertinoColors.systemGrey,
+                        fontSize: 13,
+                      ),
+              ),
+            ).toList(),
+          ),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: CupertinoSlider(
+                value: sliderValue.value,
+                onChanged: (value) {
+                  sliderValue.value = value;
+                },
+                onChangeEnd: (value) {
+                  onAnswer(value.toInt());
+                },
+                min: 0,
+                max: 10,
+                divisions: 10,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -187,6 +232,8 @@ class QuestionWidget extends StatelessWidget {
           children: [
             for (var option in question.options)
               CupertinoListTile(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 onTap: () => onAnswer(option),
                 title: Text(
                   option,

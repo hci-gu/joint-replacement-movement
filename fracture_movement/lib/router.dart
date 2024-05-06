@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/screens/home.dart';
 import 'package:fracture_movement/screens/introduction/introduction.dart';
 import 'package:fracture_movement/screens/introduction/login.dart';
@@ -21,10 +22,16 @@ class RouterNotifier extends ChangeNotifier {
   String? _redirectLogic(BuildContext context, GoRouterState state) {
     bool loggedIn = _ref.read(authProvider) != null;
 
-    if (loggedIn && _isLoginRoute(state.matchedLocation)) {
+    // handle logging in
+    if (!loggedIn && state.matchedLocation == '/loading') {
+      return null;
+    } else if (loggedIn && state.matchedLocation == '/loading') {
       return '/';
     }
 
+    if (loggedIn && _isLoginRoute(state.matchedLocation)) {
+      return '/';
+    }
     if (!loggedIn && !_isLoginRoute(state.matchedLocation)) {
       return '/introduction';
     }
@@ -38,12 +45,17 @@ class RouterNotifier extends ChangeNotifier {
   }
 }
 
-final routerProvider = Provider((ref) {
+final routerProvider = Provider.family<GoRouter, bool>((ref, loggedIn) {
   final routerNotifier = RouterNotifier(ref);
 
   return GoRouter(
-    initialLocation: '/introduction',
+    initialLocation: loggedIn ? '/loading' : '/introduction',
     routes: [
+      GoRoute(
+        path: '/loading',
+        name: 'loading',
+        builder: (context, state) => const LoadingScreen(),
+      ),
       GoRoute(
         path: '/',
         name: 'home',
@@ -80,3 +92,44 @@ final routerProvider = Provider((ref) {
     redirect: routerNotifier._redirectLogic,
   );
 });
+
+class LoadingScreen extends HookConsumerWidget {
+  const LoadingScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ValueNotifier<bool> waitedLongEnough = useState(false);
+
+    useEffect(() {
+      Future.delayed(const Duration(seconds: 5), () {
+        if (context.mounted) {
+          waitedLongEnough.value = true;
+        }
+      });
+      return () => {};
+    }, []);
+
+    return CupertinoPageScaffold(
+      child: waitedLongEnough.value
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Center(child: CupertinoActivityIndicator()),
+                const SizedBox(height: 16),
+                Center(
+                  child: CupertinoButton.filled(
+                    onPressed: () {
+                      context.goNamed('introduction');
+                    },
+                    child: const Text('Abort'),
+                  ),
+                )
+              ],
+            )
+          : const Center(
+              child: CupertinoActivityIndicator(),
+            ),
+    );
+  }
+}

@@ -1,11 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/state/state.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:movement_code/components/password_input.dart';
 import 'package:movement_code/components/personal_number_input.dart';
 
 class SignupScreen extends HookConsumerWidget {
@@ -13,6 +10,7 @@ class SignupScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ValueNotifier<bool> isLoading = useState(false);
     final personalIdController = useTextEditingController(
       text: '',
     );
@@ -56,37 +54,31 @@ class SignupScreen extends HookConsumerWidget {
               const SizedBox(height: 32),
               PersonalNumberInput(controller: personalIdController),
               const SizedBox(height: 16),
-              CupertinoTextField(
+              PasswordInput(
                 controller: passwordController,
-                placeholder: 'Lösenord',
-                obscureText: true,
               ),
               const SizedBox(height: 16),
-              CupertinoTextField(
+              PasswordInput(
                 controller: confirmPasswordController,
-                placeholder: 'Upprepa Lösenord',
-                obscureText: true,
+                placeholder: 'Upprepa lösenord',
               ),
               const SizedBox(height: 16),
               CupertinoButton.filled(
-                child: const Text('Skapa konto'),
-                onPressed: () async {
-                  try {
-                    await ref.read(authProvider.notifier).signup(
-                          Credentials(
-                            personalIdController.text,
-                            passwordController.text,
-                          ),
-                        );
-                  } catch (e) {
-                    // showCupertinoModalPopup(
-                    //   context: context,
-                    //   builder: (ctx) => Center(
-                    //     child: Text('Hallå eller'),
-                    //   ),
-                    // );
-                  }
-                },
+                onPressed: isLoading.value
+                    ? null
+                    : () async {
+                        try {
+                          await ref.read(authProvider.notifier).signup(
+                                Credentials(
+                                  personalIdController.text,
+                                  passwordController.text,
+                                ),
+                              );
+                        } catch (e) {}
+                      },
+                child: isLoading.value
+                    ? const CupertinoActivityIndicator()
+                    : const Text('Skapa konto'),
               ),
             ],
           ),

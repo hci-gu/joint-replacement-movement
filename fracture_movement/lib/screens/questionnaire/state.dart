@@ -1,151 +1,13 @@
 import 'dart:math';
 
 import 'package:fracture_movement/pocketbase.dart';
+import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:fracture_movement/storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/state.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:collection/collection.dart';
-
-class Answer {
-  final String questionnaireId;
-  final Map<String, dynamic> answers;
-  final DateTime created;
-
-  const Answer({
-    required this.questionnaireId,
-    required this.answers,
-    required this.created,
-  });
-
-  factory Answer.fromRecord(RecordModel record) {
-    final Map<String, dynamic> data = record.data;
-
-    return Answer(
-      questionnaireId: data['questionnaire'],
-      answers: data['answers'],
-      created: DateTime.parse(record.created),
-    );
-  }
-}
-
-enum QuestionType {
-  text,
-  singleChoice,
-  segmentControl,
-  painMedication,
-  painScale,
-  date,
-  stepDataAccess
-}
-
-QuestionType questionTypeForString(String value) {
-  return QuestionType.values
-      .firstWhere((e) => e.toString() == 'QuestionType.$value');
-}
-
-enum Occurance {
-  once,
-  daily,
-  weekly,
-  monthly,
-}
-
-extension OccuranceExtensions on Occurance {
-  String get display {
-    switch (this) {
-      case Occurance.once:
-        return 'Engångs';
-      case Occurance.daily:
-        return 'Dagligen';
-      case Occurance.weekly:
-        return 'Veckovis';
-      case Occurance.monthly:
-        return 'Månadsvis';
-    }
-  }
-
-  Duration get duration {
-    switch (this) {
-      case Occurance.once:
-        return const Duration(days: 0);
-      case Occurance.daily:
-        return const Duration(days: 1);
-      case Occurance.weekly:
-        return const Duration(days: 7);
-      case Occurance.monthly:
-        return const Duration(days: 30);
-    }
-  }
-}
-
-Occurance occuranceFromString(String value) {
-  return Occurance.values.firstWhere((e) => e.toString() == 'Occurance.$value');
-}
-
-class Dependency {
-  final String question;
-  final String answer;
-
-  const Dependency({required this.question, required this.answer});
-}
-
-class Question {
-  final String id;
-  final String text;
-  final QuestionType type;
-  final List<String> options;
-  final String? introduction;
-  final String? placeholder;
-  final Dependency? dependsOn;
-  final String? valueFromQuestion;
-
-  const Question({
-    this.id = '',
-    required this.text,
-    this.type = QuestionType.text,
-    this.options = const [],
-    this.introduction,
-    this.placeholder,
-    this.dependsOn,
-    this.valueFromQuestion,
-  });
-
-  factory Question.fromRecord(RecordModel record) {
-    final Map<String, dynamic> data = record.data;
-    final Map<String, dynamic> expand = record.expand;
-
-    // final List<String> options = record.expand['options'] ?? [];
-    final Dependency? dependsOn = data['dependency'].isNotEmpty
-        ? Dependency(
-            question: data['dependency'],
-            answer: data['dependencyValue'],
-          )
-        : null;
-
-    List<String> options = [];
-    if (expand['options'] != null) {
-      RecordModel optionsRecord = expand['options'].first;
-      List<dynamic> values = optionsRecord.data['value'];
-
-      options = values.map((e) => e.toString()).toList();
-    }
-
-    return Question(
-      id: record.id,
-      text: data['text'],
-      type: QuestionType.values
-          .firstWhere((e) => e.toString() == 'QuestionType.${data['type']}'),
-      options: options,
-      introduction:
-          data['introduction'].isNotEmpty ? data['introduction'] : null,
-      placeholder: data['placeholder'].isNotEmpty ? data['placeholder'] : null,
-      dependsOn: dependsOn,
-      valueFromQuestion: data['valueFromQuestion'],
-    );
-  }
-}
 
 class Questionnaire {
   final String name;
@@ -236,24 +98,21 @@ class Questionnaire {
 
   bool get answered {
     if (lastAnswered != null) {
-      if (occurance == Occurance.once) {
+      DateTime next = occurance.nextOccurance(lastAnswered!);
+
+      if (next.isAfter(DateTime.now())) {
         return true;
       }
-      return lastAnswered!.isAfter(DateTime.now().subtract(occurance.duration));
     }
     return false;
   }
 
   Map<String, dynamic> get answersToSubmit {
     Map<String, dynamic> answersToSubmit = {};
-    // loop through all values in answers
     for (var key in answers.keys) {
-      // check if value is DateTime
       if (answers[key] is DateTime) {
-        // convert to iso8601 string
         answersToSubmit[key] = (answers[key] as DateTime).toIso8601String();
       } else {
-        // otherwise just copy the value
         answersToSubmit[key] = answers[key];
       }
     }
@@ -309,7 +168,7 @@ class QuestionnaireNotifier
     });
   }
 
-  void answer(String question, dynamic answer) async {
+  Future<bool> answer(String question, dynamic answer) async {
     state = await AsyncValue.guard(() async {
       Map<String, dynamic> answers = {
         ...state.value!.answers,
@@ -317,6 +176,7 @@ class QuestionnaireNotifier
       answers[question] = answer;
       return state.value!.copyWith(answers: answers);
     });
+    return !state.value!.canSubmit;
   }
 
   Future submit() async {
@@ -333,10 +193,22 @@ class QuestionnaireNotifier
 
         String? personalId = Storage().getCredentials()?.personalNumber;
         if (personalId != null) {
-          ref.read(healthDataProvider(date).notifier).uploadData(personalId);
+          ref
+              .read(healthDataProvider(DateTime(
+                date.year - 1,
+                date.month,
+                date.day,
+              )).notifier)
+              .uploadData(personalId);
         }
       }
       ref.invalidate(answersProvider);
+    }
+
+    DateTime? lastSync = await getLastStepData();
+    String? personalId = Storage().getCredentials()?.personalNumber;
+    if (lastSync != null && personalId != null) {
+      uploadLatestHealthData(personalId, lastSync);
     }
   }
 }

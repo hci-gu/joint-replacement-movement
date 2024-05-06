@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/router.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:fracture_movement/storage.dart';
@@ -12,7 +13,7 @@ void main() async {
   // Api().init('https://fracture-api.prod.appadem.in');
   await Storage().reloadPrefs();
   Credentials? credentials = Storage().getCredentials();
-  Api().init('http://192.168.0.33:8090');
+  Api().init('https://fracture-puff-api.prod.appadem.in');
 
   runApp(
     ProviderScope(
@@ -21,17 +22,24 @@ void main() async {
               authProvider.overrideWith((ref) => Auth(credentials)),
             ]
           : [],
-      child: const App(),
+      child: App(
+        loggedIn: credentials != null,
+      ),
     ),
   );
 }
 
 class App extends ConsumerWidget {
-  const App({super.key});
+  final bool loggedIn;
+
+  const App({
+    super.key,
+    this.loggedIn = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(routerProvider);
+    final router = ref.watch(routerProvider(loggedIn));
 
     return GestureDetector(
       onTap: () {
