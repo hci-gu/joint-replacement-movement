@@ -1,23 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "app/migrations"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+	"github.com/pocketbase/pocketbase/tools/cron"
+	"github.com/sideshow/apns2"
+	"github.com/sideshow/apns2/payload"
+	"github.com/sideshow/apns2/token"
 )
 
 type Value struct {
@@ -54,6 +61,28 @@ type DataItem struct {
 //		WalkingStepLengthCollection,
 //	}
 
+// functions that checks if we have already answered the questionnaire
+func answeredQuestionnaire(answeredDate time.Time, occurance string) bool {
+	var nextDueDate time.Time
+
+	// Determine the next due date based on the occurrence
+	switch occurance {
+	case "daily":
+		nextDueDate = answeredDate.AddDate(0, 0, 1) // Add one day
+	case "weekly":
+		nextDueDate = answeredDate.AddDate(0, 0, 7) // Add one week
+	default:
+		// Optionally handle unexpected occurrence value
+		return false
+	}
+
+	// Get the current date
+	currentDate := time.Now()
+
+	// Check if the current date is past the next due date
+	return currentDate.After(nextDueDate)
+}
+
 func main() {
 	app := pocketbase.New()
 
@@ -64,6 +93,8 @@ func main() {
 	})
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		scheduler := cron.New()
+
 		e.Router.Use(middleware.Decompress())
 		e.Router.Use(middleware.BodyLimit(200 * 1024 * 1024))
 
@@ -72,6 +103,7 @@ func main() {
 		})
 
 		e.Router.POST("/users", func(c echo.Context) error {
+
 			data := struct {
 				PersonalId string `json:"personalId"`
 				Consent    bool   `json:"consent"`
@@ -168,6 +200,69 @@ func main() {
 
 			return nil
 		})
+
+		// cron job that triggers at 19:00 every day
+		scheduler.MustAdd("hello", "0 19 * * *", func() {
+			authKey, err := token.AuthKeyFromFile("./cert/key.p8")
+
+			if err != nil {
+				log.Fatal("Cert Error:", err)
+			}
+
+			token := &token.Token{
+				AuthKey: authKey,
+				KeyID:   "AUR4NK22L7",
+				TeamID:  "5KQ3D3FG5H",
+			}
+
+			users, _ := app.Dao().FindRecordsByFilter("users", "device_token != ''", "", 0, 0)
+			log.Println("Users to notify: ", users)
+			questionnaires, _ := app.Dao().FindRecordsByFilter("questionnaires", "enabled = true && (occurance = 'daily' || occurance = 'weekly')", "", 0, 0)
+
+			for _, user := range users {
+				questionnairesToAnswer := make([]*models.Record, 0)
+				for _, questionnaire := range questionnaires {
+					answered, _ := app.Dao().FindFirstRecordByFilter("answers", "user = {:user} && questionnaire = {:questionnaire}", dbx.Params{
+						"user":          user.Id,
+						"questionnaire": questionnaire.Id,
+					})
+
+					if answered == nil || !answeredQuestionnaire(answered.Created.Time(), questionnaire.Get("occurance").(string)) {
+						questionnairesToAnswer = append(questionnairesToAnswer, questionnaire)
+					}
+				}
+
+				if len(questionnairesToAnswer) > 0 {
+					notification := &apns2.Notification{}
+					notification.DeviceToken = user.Get("device_token").(string)
+					notification.Topic = "com.example.fractureMovement"
+					payload := payload.NewPayload().Badge(1)
+					if len(questionnairesToAnswer) == 1 {
+						if questionnairesToAnswer[0].Get("occurance").(string) == "daily" {
+							payload.Alert("Dags att fylla i dagboken")
+						}
+						if questionnairesToAnswer[0].Get("occurance").(string) == "weekly" {
+							payload.Alert("Dags att fylla i veckans formulär")
+						}
+						payload.Custom("action", "questionnaire?id="+questionnairesToAnswer[0].Id)
+					} else {
+						payload.Alert("Dags att fylla i dagboken och veckans formulär")
+					}
+					notification.Payload = payload
+
+					client := apns2.NewTokenClient(token).Production()
+					res, err := client.Push(notification)
+
+					if err != nil {
+						log.Fatal("Error:", err)
+					}
+
+					fmt.Printf("%v %v %v\n", res.StatusCode, res.ApnsID, res.Reason)
+				}
+			}
+		})
+
+		scheduler.Start()
 
 		return nil
 	})

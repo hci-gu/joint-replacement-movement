@@ -2,6 +2,7 @@ import 'package:fracture_movement/pocketbase.dart';
 import 'package:fracture_movement/storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'package:push/push.dart';
 
 class Credentials {
   final String personalNumber;
@@ -53,6 +54,10 @@ class Auth extends StateNotifier<RecordAuth?> {
           .collection('users')
           .authWithPassword(credentials.personalNumber, credentials.password);
       Storage().storeCredentails(credentials);
+      await Push.instance.requestPermission();
+      await pb.collection('users').update(state!.record!.id, body: {
+        'device_token': await Push.instance.token,
+      });
     } catch (e) {
       rethrow;
     }
@@ -78,6 +83,45 @@ class Auth extends StateNotifier<RecordAuth?> {
   Future logout() async {
     state = null;
     Storage().clearCredentials();
+  }
+
+  Future toggleNotifications(bool enabled) async {
+    try {
+      if (enabled) {
+        await Push.instance.requestPermission();
+      }
+      String? token = await Push.instance.token;
+      await pb.collection('users').update(state!.record!.id, body: {
+        'device_token': enabled ? token : null,
+      });
+
+      state = await pb.collection('users').authRefresh();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> notificationsEnabled() async {
+    try {
+      if (state == null) {
+        return false;
+      }
+      final res = await pb.collection('users').getOne(state!.record!.id);
+      return res.data['device_token'] != null &&
+          res.data['device_token'].isNotEmpty;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future deleteAccount() async {
+    try {
+      await pb.collection('users').delete(state!.record!.id);
+      state = null;
+      Storage().clearCredentials();
+    } catch (e) {
+      rethrow;
+    }
   }
 }
 

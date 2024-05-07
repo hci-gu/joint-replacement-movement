@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fracture-puff-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fracture-puff-api
+  template:
+    metadata:
+      labels:
+        app: fracture-puff-api
+    spec:
+      volumes:
+      - name: fracture-puff-api-persistent-storage
+        persistentVolumeClaim:
+          claimName: fracture-puff-api-pv-claim
+      containers:
+        - name: fracture-puff-api
+          image: 'appademin/fracture-puff-api:0.0.2'
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: web
+              protocol: TCP
+          volumeMounts:
+          - mountPath: /pb/pb_data
+            name: fracture-puff-api-persistent-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fracture-puff-api-service
+spec:
+  selector:
+    app: fracture-puff-api
+  ports:
+    - protocol: TCP
+      port: 8080

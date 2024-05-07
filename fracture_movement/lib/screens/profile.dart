@@ -71,6 +71,41 @@ class UpdatePasswordForm extends HookConsumerWidget {
   }
 }
 
+class EnableNotifications extends ConsumerWidget {
+  const EnableNotifications({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(authProvider);
+    return FutureBuilder(
+      future: ref.watch(authProvider.notifier).notificationsEnabled(),
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Notifikationer',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            CupertinoSwitch(
+              value: snapshot.data == true,
+              onChanged: (value) async {
+                await ref
+                    .read(authProvider.notifier)
+                    .toggleNotifications(value);
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
+}
+
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -94,6 +129,7 @@ class ProfileScreen extends ConsumerWidget {
                   SizedBox(height: 32),
                   UpdatePasswordForm(),
                   SizedBox(height: 32),
+                  EnableNotifications(),
                 ],
               ),
               Column(
@@ -104,6 +140,19 @@ class ProfileScreen extends ConsumerWidget {
                     child: const Text('Logga ut'),
                     onPressed: () {
                       ref.read(authProvider.notifier).logout();
+                      context.goNamed('introduction');
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  CupertinoButton(
+                    child: const Text(
+                      'Radera konto',
+                      style: TextStyle(
+                        color: CupertinoColors.destructiveRed,
+                      ),
+                    ),
+                    onPressed: () {
+                      ref.read(authProvider.notifier).deleteAccount();
                       context.goNamed('introduction');
                     },
                   ),
