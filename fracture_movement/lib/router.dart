@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fracture_movement/screens/history/history.dart';
 import 'package:fracture_movement/screens/home.dart';
 import 'package:fracture_movement/screens/introduction/introduction.dart';
 import 'package:fracture_movement/screens/introduction/login.dart';
@@ -61,6 +62,25 @@ final routerProvider = Provider.family<GoRouter, bool>((ref, loggedIn) {
         name: 'home',
         builder: (context, state) => const HomeScreen(),
         routes: [
+          GoRoute(
+            path: 'history/:id',
+            name: 'history',
+            builder: (context, state) => HistoryScreen(
+              questionnaireId: state.pathParameters['id'] ?? '',
+            ),
+            routes: [
+              GoRoute(
+                path: 'questionnaire',
+                name: 'questionnaire-history',
+                builder: (context, state) => QuestionnaireScreen(
+                  id: state.pathParameters['id'] ?? '',
+                  date: state.uri.queryParameters['date'] != null
+                      ? DateTime.parse(state.uri.queryParameters['date']!)
+                      : null,
+                ),
+              )
+            ],
+          ),
           GoRoute(
             path: 'questionnaire/:id',
             name: 'questionnaire',

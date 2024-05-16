@@ -1,11 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:fracture_movement/state/state.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:movement_code/components/personal_number_input.dart';
 
 class IntroductionScreen extends ConsumerWidget {
   const IntroductionScreen({super.key});

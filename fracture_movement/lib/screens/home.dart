@@ -4,9 +4,9 @@ import 'package:fracture_movement/screens/profile.dart';
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/screens/step_data.dart';
+import 'package:fracture_movement/utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:push/push.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class QuestionnaireItem extends StatelessWidget {
@@ -45,7 +45,14 @@ class QuestionnaireItem extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(questionnaire.name),
+                Text(
+                  questionnaire.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 Text(
                   description,
                   maxLines: 2,
@@ -73,7 +80,7 @@ class QuestionnaireItem extends StatelessWidget {
 
   String get description {
     if (questionnaire.answered && questionnaire.lastAnswered != null) {
-      return timeago.format(questionnaire.lastAnswered!, locale: 'sv');
+      return 'Avklarad ${timeago.format(questionnaire.lastAnswered!, locale: 'sv')}';
     }
 
     return questionnaire.occurance.display;
@@ -89,43 +96,105 @@ class Home extends ConsumerWidget {
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: ListView(
-            children: [
-              const Text(
-                'Idag',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+          child: ref.watch(questionnairesProvider).when(
+                data: (data) => _body(context, ref, data),
+                error: (_, __) {
+                  return const Center(
+                    child: Text('something went wrong'),
+                  );
+                },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
-              // 2x2 grid of questionnaires
-              const SizedBox(height: 16),
-              ref.watch(questionnairesProvider).when(
-                    data: (List<Questionnaire> questionnaires) {
-                      return GridView.count(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        shrinkWrap: true,
-                        childAspectRatio: 1.3,
-                        children: [
-                          for (final questionnaire in questionnaires)
-                            QuestionnaireItem(
-                              questionnaire: questionnaire,
-                            ),
-                        ],
-                      );
-                    },
-                    error: (_, __) {
-                      return const Center(
-                        child: Text('something went wrong'),
-                      );
-                    },
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-            ],
-          ),
         ),
       ),
+    );
+  }
+
+  Widget _body(
+      BuildContext context, WidgetRef ref, HomeScreenQuestionnaires home) {
+    int remainingDaily =
+        daysForAnswers(home.dailyAnswers) - home.dailyAnswers.length + 1;
+
+    return ListView(
+      children: [
+        const Text(
+          'Dagbok',
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          shrinkWrap: true,
+          childAspectRatio: 1.3,
+          children: [
+            QuestionnaireItem(questionnaire: home.daily),
+          ],
+        ),
+        const SizedBox(height: 16),
+        CupertinoListTile(
+          padding: EdgeInsets.zero,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Se tidigare svar',
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 4),
+              remainingDaily > 0
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          CupertinoIcons.exclamationmark_circle_fill,
+                          size: 18,
+                          color: CupertinoColors.systemRed,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Du har $remainingDaily obesvarade frågor',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: CupertinoColors.systemGrey,
+                          ),
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ],
+          ),
+          onTap: () {
+            context.goNamed('history', pathParameters: {
+              'id': home.daily.id,
+            });
+          },
+          trailing: const CupertinoListTileChevron(),
+        ),
+        const Divider(),
+        const Text(
+          'Formulär',
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+        ),
+        // 2x2 grid of questionnaires
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          shrinkWrap: true,
+          childAspectRatio: 1.3,
+          children: [
+            for (final questionnaire in home.other)
+              QuestionnaireItem(
+                questionnaire: questionnaire,
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

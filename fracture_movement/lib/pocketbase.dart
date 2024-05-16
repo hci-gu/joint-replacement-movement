@@ -23,14 +23,15 @@ Future<Questionnaire> getQuestionnaire(String id) async {
   return Questionnaire.fromRecord(res);
 }
 
-Future submitQuestionnaire(
-    Questionnaire questionnaire, String userId, DateTime startDate) async {
+Future submitQuestionnaire(Questionnaire questionnaire, String userId,
+    DateTime startDate, DateTime date) async {
   await pb.collection('answers').create(
     body: {
       'user': userId,
       'questionnaire': questionnaire.id,
       'answers': questionnaire.answersToSubmit,
       'started': startDate.toIso8601String(),
+      'date': date.toIso8601String(),
     },
   );
 }
@@ -49,7 +50,22 @@ Future<DateTime?> getLastStepData() async {
 Future<List<Answer>> getAnswers() async {
   try {
     final res = await pb.collection('answers').getFullList(
-          sort: '-created',
+          sort: '-date',
+        );
+
+    List<Answer> answers = res.map((e) => Answer.fromRecord(e)).toList();
+    return answers;
+  } catch (e) {
+    print(e);
+    return [];
+  }
+}
+
+Future<List<Answer>> getAnswersForQuestionnaire(String id) async {
+  try {
+    final res = await pb.collection('answers').getFullList(
+          sort: '-date',
+          filter: 'questionnaire="$id"',
         );
 
     List<Answer> answers = res.map((e) => Answer.fromRecord(e)).toList();

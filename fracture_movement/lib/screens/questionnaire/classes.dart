@@ -3,11 +3,13 @@ import 'package:pocketbase/pocketbase.dart';
 class Answer {
   final String questionnaireId;
   final Map<String, dynamic> answers;
+  final DateTime date;
   final DateTime created;
 
   const Answer({
     required this.questionnaireId,
     required this.answers,
+    required this.date,
     required this.created,
   });
 
@@ -17,6 +19,7 @@ class Answer {
     return Answer(
       questionnaireId: data['questionnaire'],
       answers: data['answers'],
+      date: DateTime.parse(data['date']),
       created: DateTime.parse(record.created),
     );
   }

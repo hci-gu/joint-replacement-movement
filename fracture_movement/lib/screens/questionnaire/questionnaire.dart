@@ -2,12 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
-import 'package:fracture_movement/pocketbase.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/screens/questionnaire/widgets/question.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:movement_code/state.dart';
 import 'package:movement_code/utils/single_direction_scroll.dart';
 
 const animationCurve = Curves.easeInOut;
@@ -101,12 +99,14 @@ class QuestionnaireWidget extends HookConsumerWidget {
   final Questionnaire questionnaire;
   final Function onAnswer;
   final Function onPageChange;
+  final DateTime? date;
 
   const QuestionnaireWidget({
     super.key,
     required this.questionnaire,
     required this.onAnswer,
     required this.onPageChange,
+    this.date,
   });
 
   @override
@@ -234,9 +234,9 @@ class QuestionnaireWidget extends HookConsumerWidget {
                                                     .read(questionnaireProvider(
                                                             questionnaire.id)
                                                         .notifier)
-                                                    .submit();
+                                                    .submit(date);
                                                 if (context.mounted) {
-                                                  context.goNamed('home');
+                                                  context.pop();
                                                 }
                                                 return;
                                               }
@@ -271,16 +271,19 @@ class QuestionnaireWidget extends HookConsumerWidget {
 
 class QuestionnaireScreen extends HookConsumerWidget {
   final String id;
+  final DateTime? date;
 
   const QuestionnaireScreen({
     super.key,
     required this.id,
+    this.date,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ref.watch(questionnaireProvider(id)).when(
           data: (questionnaire) => QuestionnaireWidget(
+            date: date,
             questionnaire: questionnaire,
             onAnswer: (name, answer) => ref
                 .read(questionnaireProvider(id).notifier)
@@ -289,9 +292,7 @@ class QuestionnaireScreen extends HookConsumerWidget {
               ref.read(questionnaireProvider(id).notifier).setPageIndex(value);
             },
           ),
-          error: (_, __) {
-            return _page();
-          },
+          error: (_, __) => _page(),
           loading: () => CupertinoPageScaffold(
             navigationBar: CupertinoNavigationBar(
               leading: CupertinoNavigationBarBackButton(

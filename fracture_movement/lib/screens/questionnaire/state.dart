@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:fracture_movement/pocketbase.dart';
+import 'package:fracture_movement/screens/history/state.dart';
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:fracture_movement/storage.dart';
@@ -99,7 +100,6 @@ class Questionnaire {
   bool get answered {
     if (lastAnswered != null) {
       DateTime next = occurance.nextOccurance(lastAnswered!);
-
       if (next.isAfter(DateTime.now())) {
         return true;
       }
@@ -179,12 +179,13 @@ class QuestionnaireNotifier
     return !state.value!.canSubmit;
   }
 
-  Future submit() async {
+  Future submit([DateTime? date]) async {
     if (state.value != null) {
       await submitQuestionnaire(
         state.value!,
         ref.read(authProvider)!.record!.id,
         startDate,
+        date ?? DateTime.now(),
       );
       if (state.value!.containsStepDataAccess) {
         // find answer of type date in answers
@@ -202,6 +203,7 @@ class QuestionnaireNotifier
               .uploadData(personalId);
         }
       }
+      ref.invalidate(questionnaireAnswersProvider(state.value!.id));
       ref.invalidate(answersProvider);
     }
 
@@ -213,7 +215,24 @@ class QuestionnaireNotifier
   }
 }
 
-final questionnairesProvider = FutureProvider<List<Questionnaire>>((ref) async {
+class HomeScreenQuestionnaires {
+  final Questionnaire daily;
+  final List<Answer> dailyAnswers;
+  final Questionnaire weekly;
+  final List<Answer> weeklyAnswers;
+  final List<Questionnaire> other;
+
+  HomeScreenQuestionnaires({
+    required this.daily,
+    required this.dailyAnswers,
+    required this.weekly,
+    required this.weeklyAnswers,
+    required this.other,
+  });
+}
+
+final questionnairesProvider =
+    FutureProvider<HomeScreenQuestionnaires>((ref) async {
   List<Questionnaire> questionnaires = await getQuestionnaires();
   List<Answer> answers = await ref.watch(answersProvider.future);
 
@@ -223,13 +242,34 @@ final questionnairesProvider = FutureProvider<List<Questionnaire>>((ref) async {
     );
 
     if (answer != null) {
-      questionnaire.lastAnswered = answer.created;
+      questionnaire.lastAnswered = answer.date;
     }
   }
 
   questionnaires.sortBy((element) => element.lastAnswered ?? DateTime.now());
 
-  return questionnaires.reversed.toList();
+  Questionnaire dailyQuestionnaire = questionnaires
+      .firstWhere((element) => element.occurance == Occurance.daily);
+  Questionnaire weeklyQuestionnaire = questionnaires
+      .firstWhere((element) => element.occurance == Occurance.weekly);
+
+  List<Answer> dailyAnswers = answers
+      .where((element) => element.questionnaireId == dailyQuestionnaire.id)
+      .toList();
+
+  List<Answer> weeklyAnswers = answers
+      .where((element) => element.questionnaireId == weeklyQuestionnaire.id)
+      .toList();
+
+  return HomeScreenQuestionnaires(
+    daily: dailyQuestionnaire,
+    dailyAnswers: dailyAnswers,
+    weekly: weeklyQuestionnaire,
+    weeklyAnswers: weeklyAnswers,
+    other: questionnaires
+        .where((element) => element.occurance == Occurance.once)
+        .toList(),
+  );
 });
 
 final questionnaireProvider = AutoDisposeAsyncNotifierProviderFamily<
