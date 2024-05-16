@@ -27,7 +27,7 @@ class DailyQuestionnaireList extends StatelessWidget {
 
     return ListView.builder(
       shrinkWrap: true,
-      itemCount: days + 1,
+      itemCount: days + 2,
       itemBuilder: (context, index) {
         if (index == 0) {
           return Padding(
@@ -97,11 +97,12 @@ class DailyQuestionnaireList extends StatelessWidget {
             ),
           );
         }
+        int dayIndex = index - 1;
 
         DateTime day = DateTime(
           now.year,
           now.month,
-          now.day - index,
+          now.day - dayIndex,
           12,
         );
         Answer? answer = answers.firstWhereOrNull(
@@ -132,14 +133,14 @@ class DailyQuestionnaireList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Dag ${(days - index) + 1}',
+                    'Dag ${(days - dayIndex) + 1}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
                   ),
                   Text(
-                    DateFormat.MEd().format(day),
+                    _dayString(day),
                     style: const TextStyle(
                       color: CupertinoColors.systemGrey,
                       fontSize: 14,
@@ -168,6 +169,17 @@ class DailyQuestionnaireList extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _dayString(DateTime date) {
+    if (isSameDay(date, DateTime.now())) {
+      return 'Idag';
+    }
+    if (isSameDay(date, DateTime.now().subtract(const Duration(days: 1)))) {
+      return 'Igår';
+    }
+
+    return DateFormat.MEd().format(date);
   }
 
   Widget _painLevel(BuildContext context, Answer answer) {

@@ -114,10 +114,39 @@ class Home extends ConsumerWidget {
 
   Widget _body(
       BuildContext context, WidgetRef ref, HomeScreenQuestionnaires home) {
+    return ListView(
+      children: [
+        _dailyQuestionnaireSection(context, home),
+        const Text(
+          'Formulär',
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+        ),
+        // 2x2 grid of questionnaires
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          shrinkWrap: true,
+          childAspectRatio: 1.3,
+          children: [
+            for (final questionnaire in home.other)
+              QuestionnaireItem(
+                questionnaire: questionnaire,
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _dailyQuestionnaireSection(
+      BuildContext context, HomeScreenQuestionnaires home) {
     int remainingDaily =
         daysForAnswers(home.dailyAnswers) - home.dailyAnswers.length + 1;
 
-    return ListView(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Dagbok',
@@ -175,25 +204,6 @@ class Home extends ConsumerWidget {
           trailing: const CupertinoListTileChevron(),
         ),
         const Divider(),
-        const Text(
-          'Formulär',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
-        ),
-        // 2x2 grid of questionnaires
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          shrinkWrap: true,
-          childAspectRatio: 1.3,
-          children: [
-            for (final questionnaire in home.other)
-              QuestionnaireItem(
-                questionnaire: questionnaire,
-              ),
-          ],
-        ),
       ],
     );
   }
