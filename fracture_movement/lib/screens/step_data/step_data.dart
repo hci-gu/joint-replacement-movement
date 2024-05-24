@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'package:fracture_movement/screens/step_data/average_steps.dart';
+import 'package:fracture_movement/screens/step_data/chart.dart';
+import 'package:fracture_movement/screens/step_data/state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:movement_code/components/average_steps.dart';
-import 'package:movement_code/components/step_chart.dart';
 
 class StepDataScreen extends ConsumerWidget {
   const StepDataScreen({super.key});
@@ -11,40 +12,49 @@ class StepDataScreen extends ConsumerWidget {
     return CupertinoPageScaffold(
       child: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 0),
           children: [
-            Text(
-              'Din stegdata',
-              style: CupertinoTheme.of(context)
-                  .textTheme
-                  .navTitleTextStyle
-                  .copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              child: Text(
+                'Din stegdata',
+                style: CupertinoTheme.of(context)
+                    .textTheme
+                    .navTitleTextStyle
+                    .copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
             ),
-            Text(
-              'Nedan ser du dina steg före och efter frakturen.',
-              style: CupertinoTheme.of(context)
-                  .textTheme
-                  .pickerTextStyle
-                  .copyWith(fontSize: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              child: Text(
+                'Nedan ser du dina steg före och efter frakturen.',
+                style: CupertinoTheme.of(context)
+                    .textTheme
+                    .pickerTextStyle
+                    .copyWith(fontSize: 16),
+              ),
             ),
             _divider(),
-            CupertinoSegmentedControl<Period>(
-              children: {
-                Period.week: _segmentItem('Vecka'),
-                Period.month: _segmentItem('Månad'),
-                Period.quarter: _segmentItem('Kvartal'),
-              },
-              onValueChanged: (value) {
-                ref.read(periodProvider.notifier).state = value;
-              },
-              groupValue: ref.watch(periodProvider),
-              padding: EdgeInsets.zero,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              child: CupertinoSegmentedControl<DisplayMode>(
+                children: {
+                  DisplayMode.day: _segmentItem('Dag'),
+                  DisplayMode.week: _segmentItem('Vecka'),
+                  DisplayMode.month: _segmentItem('Månad'),
+                },
+                onValueChanged: (value) {
+                  ref.read(displayModeProvider.notifier).state = value;
+                },
+                groupValue: ref.watch(displayModeProvider),
+                padding: EdgeInsets.zero,
+              ),
             ),
             const SizedBox(height: 16),
             ref.watch(chartDataProvider).when(
                   data: (data) => StepDataChart(
                     data: data,
-                    period: ref.watch(periodProvider),
+                    displayMode: ref.watch(displayModeProvider),
                   ),
                   error: (_, __) =>
                       _chartContainer(const Center(child: Text('-'))),

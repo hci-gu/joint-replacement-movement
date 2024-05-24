@@ -31,7 +31,7 @@ extension PeriodToDays on Period {
 final periodProvider = StateProvider((ref) => Period.week);
 
 final stepDataProvider = FutureProvider<List<HealthDataPoint>>((ref) async {
-  DateTime eventDate = DateTime.now().subtract(Duration(days: 30));
+  DateTime eventDate = DateTime.now();
 
   DateTime threeMonthsBefore = eventDate.subtract(const Duration(days: 90));
   DateTime threeMonthsAfter = eventDate.add(const Duration(days: 90));
@@ -43,7 +43,8 @@ final stepDataProvider = FutureProvider<List<HealthDataPoint>>((ref) async {
 });
 
 final chartDataProvider = FutureProvider<ChartData>((ref) async {
-  DateTime eventDate = DateTime.now().subtract(Duration(days: 30));
+  DateTime eventDate = DateTime.now();
+  // DateTime eventDate = DateTime.now().subtract(Duration(days: 30));
   Period period = ref.watch(periodProvider);
 
   List<HealthDataPoint> stepData = await ref.watch(stepDataProvider.future);

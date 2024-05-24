@@ -12,7 +12,7 @@ import 'package:timeago/timeago.dart' as timeago;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   timeago.setLocaleMessages('sv', timeago.SvMessages());
-  // Api().init('http://localhost:8090');
+  // Api().init('http://192.168.0.33:8090');
   await Storage().reloadPrefs();
   Credentials? credentials = Storage().getCredentials();
   Api().init('https://fracture-puff-api.prod.appadem.in');

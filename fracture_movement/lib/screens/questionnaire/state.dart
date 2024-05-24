@@ -5,6 +5,7 @@ import 'package:fracture_movement/screens/history/state.dart';
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:fracture_movement/storage.dart';
+import 'package:fracture_movement/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/state.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -220,15 +221,35 @@ class HomeScreenQuestionnaires {
   final List<Answer> dailyAnswers;
   final Questionnaire weekly;
   final List<Answer> weeklyAnswers;
-  final List<Questionnaire> other;
+  final List<Questionnaire> answered;
+  final List<Questionnaire> unanswered;
 
   HomeScreenQuestionnaires({
     required this.daily,
     required this.dailyAnswers,
     required this.weekly,
     required this.weeklyAnswers,
-    required this.other,
+    required this.unanswered,
+    required this.answered,
   });
+
+  bool get answeredEverything {
+    int remainingDaily = daysForAnswers(dailyAnswers) - dailyAnswers.length + 1;
+    int remainingWeekly =
+        weeksForAnswers(weeklyAnswers) - weeklyAnswers.length + 1;
+
+    return unanswered.isEmpty && remainingDaily == 0 && remainingWeekly == 0;
+  }
+
+  String get doneDescription {
+    if (answeredEverything) {
+      return 'Du har inga obesvarade frågeformulär, bra jobbat!';
+    }
+    if (unanswered.isEmpty) {
+      return 'Du har svarat på dagens formulär. Men du har missat tidigare formulär.';
+    }
+    return '';
+  }
 }
 
 final questionnairesProvider =
@@ -266,8 +287,10 @@ final questionnairesProvider =
     dailyAnswers: dailyAnswers,
     weekly: weeklyQuestionnaire,
     weeklyAnswers: weeklyAnswers,
-    other: questionnaires
-        .where((element) => element.occurance == Occurance.once)
+    unanswered: questionnaires.where((element) => !element.answered).toList(),
+    answered: questionnaires
+        .where((element) =>
+            element.answered && element.occurance == Occurance.once)
         .toList(),
   );
 });

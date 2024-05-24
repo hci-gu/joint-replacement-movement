@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fracture_movement/screens/profile.dart';
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
-import 'package:fracture_movement/screens/step_data.dart';
+import 'package:fracture_movement/screens/step_data/step_data.dart';
 import 'package:fracture_movement/utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -116,10 +116,44 @@ class Home extends ConsumerWidget {
       BuildContext context, WidgetRef ref, HomeScreenQuestionnaires home) {
     return ListView(
       children: [
-        _dailyQuestionnaireSection(context, home),
         const Text(
-          'Formulär',
+          'Idag',
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 4),
+        home.unanswered.isEmpty
+            ? _doneSection(context, home)
+            : Text(
+                _displayQuestionsLeft(home.unanswered.length),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: CupertinoColors.systemGrey,
+                ),
+              ),
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          shrinkWrap: true,
+          childAspectRatio: 1.3,
+          children: [
+            for (final questionnaire in home.unanswered)
+              QuestionnaireItem(
+                questionnaire: questionnaire,
+              ),
+          ],
+        ),
+        const Divider(height: 32),
+        _recurringQuestionnaireSection(context, home.daily, home.dailyAnswers),
+        _recurringQuestionnaireSection(
+            context, home.weekly, home.weeklyAnswers),
+        const Text(
+          'Tidigare frågeformulär',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         // 2x2 grid of questionnaires
         const SizedBox(height: 16),
@@ -130,7 +164,7 @@ class Home extends ConsumerWidget {
           shrinkWrap: true,
           childAspectRatio: 1.3,
           children: [
-            for (final questionnaire in home.other)
+            for (final questionnaire in home.answered)
               QuestionnaireItem(
                 questionnaire: questionnaire,
               ),
@@ -140,38 +174,50 @@ class Home extends ConsumerWidget {
     );
   }
 
-  Widget _dailyQuestionnaireSection(
-      BuildContext context, HomeScreenQuestionnaires home) {
-    int remainingDaily =
-        daysForAnswers(home.dailyAnswers) - home.dailyAnswers.length + 1;
+  Widget _doneSection(BuildContext context, HomeScreenQuestionnaires home) {
+    return Column(
+      children: [
+        const Icon(
+          CupertinoIcons.checkmark_alt_circle,
+          color: CupertinoColors.systemGreen,
+          size: 48,
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Klart för idag',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          home.doneDescription,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 14,
+            color: CupertinoColors.systemGrey,
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _recurringQuestionnaireSection(
+      BuildContext context, Questionnaire questionnaire, List<Answer> answers) {
+    int remainingDaily = questionnaire.occurance == Occurance.daily
+        ? daysForAnswers(answers) - answers.length + 1
+        : weeksForAnswers(answers) - answers.length + 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Dagbok',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          shrinkWrap: true,
-          childAspectRatio: 1.3,
-          children: [
-            QuestionnaireItem(questionnaire: home.daily),
-          ],
-        ),
-        const SizedBox(height: 16),
         CupertinoListTile(
           padding: EdgeInsets.zero,
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Se tidigare svar',
-                style: TextStyle(fontSize: 16),
+              Text(
+                'Historik för ${questionnaire.name}',
+                style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 4),
               remainingDaily > 0
@@ -185,7 +231,7 @@ class Home extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Du har $remainingDaily obesvarade frågor',
+                          _displayQuestionsLeft(remainingDaily),
                           style: const TextStyle(
                             fontSize: 14,
                             color: CupertinoColors.systemGrey,
@@ -198,14 +244,21 @@ class Home extends ConsumerWidget {
           ),
           onTap: () {
             context.goNamed('history', pathParameters: {
-              'id': home.daily.id,
+              'id': questionnaire.id,
             });
           },
           trailing: const CupertinoListTileChevron(),
         ),
-        const Divider(),
+        const Divider(height: 32),
       ],
     );
+  }
+
+  String _displayQuestionsLeft(int remaining) {
+    if (remaining == 1) {
+      return 'Du har 1 obesvarad fråga';
+    }
+    return 'Du har $remaining obesvarade frågor';
   }
 }
 

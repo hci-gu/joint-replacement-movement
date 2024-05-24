@@ -22,6 +22,7 @@ import (
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/pocketbase/pocketbase/tools/cron"
+	"github.com/pocketbase/pocketbase/tools/types"
 	"github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/payload"
 	"github.com/sideshow/apns2/token"
@@ -61,6 +62,32 @@ type DataItem struct {
 //		WalkingStepLengthCollection,
 //	}
 
+func getNotificationToken() *token.Token {
+	authKey, err := token.AuthKeyFromFile("./cert/key.p8")
+
+	if err != nil {
+		log.Fatal("Cert Error:", err)
+	}
+
+	token := &token.Token{
+		AuthKey: authKey,
+		KeyID:   "AUR4NK22L7",
+		TeamID:  "5KQ3D3FG5H",
+	}
+	return token
+}
+
+func sendNotification(token *token.Token, notification *apns2.Notification) {
+	client := apns2.NewTokenClient(token).Development()
+	res, err := client.Push(notification)
+
+	if err != nil {
+		log.Fatal("Error:", err)
+	}
+
+	fmt.Printf("%v %v %v\n", res.StatusCode, res.ApnsID, res.Reason)
+}
+
 // functions that checks if we have already answered the questionnaire
 func answeredQuestionnaire(answeredDate time.Time, occurance string) bool {
 	var nextDueDate time.Time
@@ -80,7 +107,49 @@ func answeredQuestionnaire(answeredDate time.Time, occurance string) bool {
 	currentDate := time.Now()
 
 	// Check if the current date is past the next due date
-	return currentDate.After(nextDueDate)
+	return nextDueDate.After(currentDate)
+}
+
+func notificationToSend(app *pocketbase.PocketBase, user *models.Record, questionnaires []*models.Record) *apns2.Notification {
+	questionnairesToAnswer := make([]*models.Record, 0)
+	for _, questionnaire := range questionnaires {
+		// log occurance of questionnaire
+		log.Println("Questionnaire occurance: ", questionnaire.Get("occurance").(string))
+		answered, _ := app.Dao().FindFirstRecordByFilter("answers", "user = {:user} && questionnaire = {:questionnaire}", dbx.Params{
+			"user":          user.Id,
+			"questionnaire": questionnaire.Id,
+		})
+
+		if answered == nil || !answeredQuestionnaire(answered.Get("date").(types.DateTime).Time(), questionnaire.Get("occurance").(string)) {
+			questionnairesToAnswer = append(questionnairesToAnswer, questionnaire)
+		}
+	}
+
+	log.Println("Questionnaires to answer: " + strconv.Itoa(len(questionnairesToAnswer)))
+	if len(questionnairesToAnswer) > 0 {
+		notification := &apns2.Notification{}
+		notification.DeviceToken = user.Get("device_token").(string)
+		notification.Topic = "com.example.fractureMovement"
+		payload := payload.NewPayload().Badge(1)
+		if len(questionnairesToAnswer) == 1 {
+			if questionnairesToAnswer[0].Get("occurance").(string) == "daily" {
+				payload.Alert("Dags att fylla i dagboken")
+			}
+			if questionnairesToAnswer[0].Get("occurance").(string) == "weekly" {
+				payload.Alert("Dags att fylla i veckans formulär")
+			}
+			payload.Custom("action", "questionnaire?id="+questionnairesToAnswer[0].Id)
+		} else {
+			payload.Alert("Dags att fylla i dagboken och veckans formulär")
+		}
+		notification.Payload = payload
+
+		log.Println("Sending out a notification")
+
+		return notification
+	}
+
+	return nil
 }
 
 func main() {
@@ -201,68 +270,63 @@ func main() {
 			return nil
 		})
 
+		// e.Router.GET("/notify", func(c echo.Context) error {
+		// 	user, _ := app.Dao().FindRecordById("users", "k2n4khxcjr6ncft")
+		// 	token := getNotificationToken()
+		// 	// we have answered so that we are done!
+		// 	notification := &apns2.Notification{}
+		// 	notification.DeviceToken = user.Get("device_token").(string)
+		// 	notification.Topic = "com.example.fractureMovement"
+		// 	payload := payload.NewPayload().Badge(0)
+		// 	notification.Payload = payload
+
+		// 	sendNotification(token, notification)
+		// 	return nil
+		// })
+
 		// cron job that triggers at 19:00 every day
 		scheduler.MustAdd("hello", "0 19 * * *", func() {
-			authKey, err := token.AuthKeyFromFile("./cert/key.p8")
-
-			if err != nil {
-				log.Fatal("Cert Error:", err)
-			}
-
-			token := &token.Token{
-				AuthKey: authKey,
-				KeyID:   "AUR4NK22L7",
-				TeamID:  "5KQ3D3FG5H",
-			}
+			log.Println("Run notification job: ")
+			token := getNotificationToken()
 
 			users, _ := app.Dao().FindRecordsByFilter("users", "device_token != ''", "", 0, 0)
-			log.Println("Users to notify: ", users)
+			log.Println("Users to notify: " + strconv.Itoa(len(users)))
 			questionnaires, _ := app.Dao().FindRecordsByFilter("questionnaires", "enabled = true && (occurance = 'daily' || occurance = 'weekly')", "", 0, 0)
 
 			for _, user := range users {
-				questionnairesToAnswer := make([]*models.Record, 0)
-				for _, questionnaire := range questionnaires {
-					answered, _ := app.Dao().FindFirstRecordByFilter("answers", "user = {:user} && questionnaire = {:questionnaire}", dbx.Params{
-						"user":          user.Id,
-						"questionnaire": questionnaire.Id,
-					})
+				notification := notificationToSend(app, user, questionnaires)
 
-					if answered == nil || !answeredQuestionnaire(answered.Created.Time(), questionnaire.Get("occurance").(string)) {
-						questionnairesToAnswer = append(questionnairesToAnswer, questionnaire)
-					}
-				}
-
-				if len(questionnairesToAnswer) > 0 {
-					notification := &apns2.Notification{}
-					notification.DeviceToken = user.Get("device_token").(string)
-					notification.Topic = "com.example.fractureMovement"
-					payload := payload.NewPayload().Badge(1)
-					if len(questionnairesToAnswer) == 1 {
-						if questionnairesToAnswer[0].Get("occurance").(string) == "daily" {
-							payload.Alert("Dags att fylla i dagboken")
-						}
-						if questionnairesToAnswer[0].Get("occurance").(string) == "weekly" {
-							payload.Alert("Dags att fylla i veckans formulär")
-						}
-						payload.Custom("action", "questionnaire?id="+questionnairesToAnswer[0].Id)
-					} else {
-						payload.Alert("Dags att fylla i dagboken och veckans formulär")
-					}
-					notification.Payload = payload
-
-					client := apns2.NewTokenClient(token).Production()
-					res, err := client.Push(notification)
-
-					if err != nil {
-						log.Fatal("Error:", err)
-					}
-
-					fmt.Printf("%v %v %v\n", res.StatusCode, res.ApnsID, res.Reason)
+				if notification != nil {
+					sendNotification(token, notification)
 				}
 			}
 		})
 
 		scheduler.Start()
+
+		return nil
+	})
+
+	app.OnRecordAfterCreateRequest("answers").Add(func(e *core.RecordCreateEvent) error {
+		userId := e.Record.Get("user").(string)
+
+		// Get the user record
+		user, _ := app.Dao().FindRecordById("users", userId)
+		questionnaires, _ := app.Dao().FindRecordsByFilter("questionnaires", "enabled = true && (occurance = 'daily' || occurance = 'weekly')", "", 0, 0)
+
+		notification := notificationToSend(app, user, questionnaires)
+
+		if notification == nil {
+			token := getNotificationToken()
+			// we have answered so that we are done!
+			notification := &apns2.Notification{}
+			notification.DeviceToken = user.Get("device_token").(string)
+			notification.Topic = "com.example.fractureMovement"
+			payload := payload.NewPayload().Badge(0)
+			notification.Payload = payload
+
+			sendNotification(token, notification)
+		}
 
 		return nil
 	})

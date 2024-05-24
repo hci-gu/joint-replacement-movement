@@ -3,7 +3,7 @@ import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 final pb = PocketBase('https://fracture-puff-api.prod.appadem.in');
-// final pb = PocketBase('http://localhost:8090');
+// final pb = PocketBase('http://192.168.0.33:8090');
 
 Future<List<Questionnaire>> getQuestionnaires() async {
   final res = await pb.collection('questionnaires').getList(
