@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/screens/step_data/state.dart';
+
+const double pointWidth = 24;
 
 class StepDataChart extends HookWidget {
   final ChartData data;
@@ -23,7 +26,8 @@ class StepDataChart extends HookWidget {
       Future.delayed(Duration.zero, () {
         if (controller.hasClients) {
           controller.jumpTo(
-              (data.points.indexOf(data.eventPoint) - 7).toDouble() * 8.0);
+              (data.points.indexOf(data.eventPoint) - 4).toDouble() *
+                  pointWidth);
         }
       });
       return () {};
@@ -38,12 +42,10 @@ class StepDataChart extends HookWidget {
       LineChartBarData(
         color: CupertinoColors.darkBackgroundGray,
         dotData: FlDotData(
-          show: false,
+          show: displayMode != DisplayMode.day,
           getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-            radius: 1,
+            radius: 3,
             color: CupertinoColors.black,
-            strokeWidth: 2,
-            strokeColor: CupertinoColors.black,
           ),
         ),
         isCurved: true,
@@ -71,14 +73,25 @@ class StepDataChart extends HookWidget {
         dotData: FlDotData(
           show: true,
           checkToShowDot: (spot, barData) {
+            if (displayMode != DisplayMode.day) return true;
+
             return spot.x == eventIndex;
           },
-          getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-            radius: 3,
-            color: CupertinoColors.activeOrange,
-            strokeWidth: 1,
-            strokeColor: CupertinoColors.black,
-          ),
+          getDotPainter: (spot, percent, barData, index) {
+            if (spot.x == eventIndex) {
+              return FlDotCirclePainter(
+                radius: 3,
+                color: CupertinoColors.activeOrange,
+                strokeWidth: 1,
+                strokeColor: CupertinoColors.black,
+              );
+            }
+
+            return FlDotCirclePainter(
+              radius: 3,
+              color: CupertinoColors.activeOrange,
+            );
+          },
         ),
         isCurved: true,
         spots: data.pointsAfter
@@ -115,12 +128,15 @@ class StepDataChart extends HookWidget {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           children: [
             SizedBox(
-              width: 8 * data.points.length.toDouble(),
+              width: max(
+                pointWidth * data.points.length.toDouble(),
+                MediaQuery.of(context).size.width - 32,
+              ),
               child: LineChart(
                 LineChartData(
                   minX: minX,
                   maxX: maxX,
-                  minY: 0,
+                  minY: -100,
                   maxY: maxY,
                   showingTooltipIndicators: [
                     ShowingTooltipIndicators([
@@ -134,9 +150,39 @@ class StepDataChart extends HookWidget {
                   gridData: FlGridData(
                     show: true,
                     drawHorizontalLine: true,
-                    checkToShowHorizontalLine: (value) => value == 5000,
+                    checkToShowHorizontalLine: (value) {
+                      int rounded = value.toInt();
+                      if (rounded == averageBefore) {
+                        return true;
+                      }
+
+                      return rounded % (maxY ~/ 5) == 0;
+                    },
+                    getDrawingHorizontalLine: (value) {
+                      int rounded = value.toInt();
+                      if (rounded == averageBefore) {
+                        return const FlLine(
+                          color: CupertinoColors.black,
+                          strokeWidth: 1,
+                          dashArray: [4],
+                        );
+                      }
+
+                      if (value == 0) {
+                        return const FlLine(
+                          color: CupertinoColors.systemGrey4,
+                          strokeWidth: 1,
+                        );
+                      }
+
+                      return FlLine(
+                        color: CupertinoColors.systemGrey4.withOpacity(0.4),
+                        strokeWidth: 1,
+                        dashArray: [10],
+                      );
+                    },
+                    horizontalInterval: 1,
                     drawVerticalLine: false,
-                    horizontalInterval: 2500,
                   ),
                   borderData: FlBorderData(
                     show: false,
@@ -147,6 +193,7 @@ class StepDataChart extends HookWidget {
                         showTitles: true,
                         reservedSize: 32,
                         getTitlesWidget: (value, meta) {
+                          if (value == 0) return const SizedBox();
                           String val = (value ~/ 1000).toString();
 
                           return Text('${val}k',
@@ -159,6 +206,7 @@ class StepDataChart extends HookWidget {
                         showTitles: true,
                         reservedSize: 32,
                         getTitlesWidget: (value, meta) {
+                          if (value == 0) return const SizedBox();
                           String val = (value ~/ 1000).toString();
 
                           return Column(
@@ -173,19 +221,34 @@ class StepDataChart extends HookWidget {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 32,
-                        interval: 7,
+                        reservedSize: 36,
+                        interval: 1,
                         getTitlesWidget: (double value, TitleMeta meta) {
-                          if (value == minX || value == maxX) {
-                            return const SizedBox();
-                          }
-
                           DataPoint point = data.points[value.toInt()];
+                          DateTime date = point.date;
+                          bool isWeekend =
+                              date.weekday == 6 || date.weekday == 7;
+
                           return SideTitleWidget(
                             axisSide: meta.axisSide,
-                            child: Text(
-                              _shortDate(point.date),
-                              style: _chartTextStyle(context),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                if (date.day == 1)
+                                  Text(
+                                    _monthToShortName(date.month),
+                                    style: _chartTextStyle(context),
+                                  ),
+                                Text(
+                                  _shortDate(point.date),
+                                  style: _chartTextStyle(context).copyWith(
+                                    color: isWeekend
+                                        ? CupertinoColors.systemRed
+                                        : CupertinoColors.systemGrey,
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -231,7 +294,7 @@ class StepDataChart extends HookWidget {
   TextStyle _chartTextStyle(BuildContext context) => CupertinoTheme.of(context)
       .textTheme
       .tabLabelTextStyle
-      .copyWith(fontSize: 12);
+      .copyWith(fontSize: 11);
 
   double get minX => 0;
   double get maxX => ((data.points.length - 1)).toDouble();
@@ -245,12 +308,19 @@ class StepDataChart extends HookWidget {
     });
   }
 
+  int get averageBefore {
+    return data.pointsBefore.map((e) => e.value).reduce((value, element) {
+          return value + element;
+        }) ~/
+        data.pointsBefore.length;
+  }
+
   String _pad(int value) {
     return value.toString().padLeft(2, '0');
   }
 
   String _shortDate(DateTime d) {
-    return '${_monthToShortName(d.month)}-${_pad(d.day)}';
+    return _pad(d.day);
   }
 
   String _displayDate(DateTime d) {

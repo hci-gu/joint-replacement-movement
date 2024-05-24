@@ -28,7 +28,17 @@ class AverageSteps extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Ditt dagliga genomsnitt', style: textStyle),
+            Text(
+              'Ditt dagliga genomsnitt',
+              style: textStyle,
+            ),
+            Text(
+              '(svarta linjen i grafen är ditt genomsnitt före fakturen)',
+              style: textStyle.copyWith(
+                fontSize: 14,
+                color: CupertinoColors.systemGrey,
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

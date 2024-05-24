@@ -71,6 +71,36 @@ DateTime dateForPointAndMode(DateTime date, DisplayMode mode) {
   }
 }
 
+List<DataPoint> groupDataPointsByDate(
+    List<DataPoint> dayPoints, DisplayMode mode) {
+  if (mode == DisplayMode.day) {
+    return dayPoints;
+  }
+
+  Map<DateTime, List<DataPoint>> dateMap = {};
+  for (DataPoint point in dayPoints) {
+    DateTime date = dateForPointAndMode(point.date, mode);
+    if (dateMap[date] == null) {
+      dateMap[date] = [];
+    }
+    dateMap[date]!.add(point);
+  }
+
+  List<DataPoint> points = dateMap.entries.map((e) {
+    double sum = e.value.map((e) => e.value).reduce((value, element) {
+          return value + element;
+        }) /
+        e.value.length;
+
+    // if (isSameDay(e.key, eventDate)) {
+    //   eventPoint = DataPoint(e.key, sum);
+    // }
+    return DataPoint(e.key, sum);
+  }).toList();
+
+  return points;
+}
+
 final chartDataProvider = FutureProvider<ChartData>((ref) async {
   DateTime? eventDate = await ref.watch(eventDateProvider.future);
   if (eventDate == null) {
@@ -104,27 +134,30 @@ final chartDataProvider = FutureProvider<ChartData>((ref) async {
       .map((e) => DataPoint.fromHealthDataPoint(e))
       .toList();
 
-  Map<DateTime, List<DataPoint>> dateMap = {};
+  Map<DateTime, List<DataPoint>> dayMap = {};
 
   for (DataPoint point in data) {
     DateTime date = DateTime(point.date.year, point.date.month, point.date.day);
-    if (dateMap[date] == null) {
-      dateMap[date] = [];
+    if (dayMap[date] == null) {
+      dayMap[date] = [];
     }
-    dateMap[date]!.add(point);
+    dayMap[date]!.add(point);
   }
 
   DataPoint eventPoint = DataPoint(eventDate, 0);
 
-  List<DataPoint> points = dateMap.entries.map((e) {
+  List<DataPoint> dayPoints = dayMap.entries.map((e) {
     double sum = e.value.map((e) => e.value).reduce((value, element) {
       return value + element;
     });
+
     if (isSameDay(e.key, eventDate)) {
       eventPoint = DataPoint(e.key, sum);
     }
     return DataPoint(e.key, sum);
   }).toList();
+
+  List<DataPoint> points = groupDataPointsByDate(dayPoints, displayMode);
 
   List<DataPoint> pointsBefore =
       points.where((element) => element.date.isBefore(eventDate)).toList();

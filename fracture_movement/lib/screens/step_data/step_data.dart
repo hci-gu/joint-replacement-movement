@@ -52,10 +52,12 @@ class StepDataScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             ref.watch(chartDataProvider).when(
-                  data: (data) => StepDataChart(
-                    data: data,
-                    displayMode: ref.watch(displayModeProvider),
-                  ),
+                  data: (data) => data.pointsAfter.length >= 2
+                      ? StepDataChart(
+                          data: data,
+                          displayMode: ref.watch(displayModeProvider),
+                        )
+                      : _notEnoughData(context),
                   error: (_, __) =>
                       _chartContainer(const Center(child: Text('-'))),
                   loading: () => _chartContainer(
@@ -69,6 +71,19 @@ class StepDataScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             _disclaimerText(context),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _notEnoughData(BuildContext context) {
+    return _chartContainer(
+      Center(
+        child: Text(
+          'Det finns inte tillräckligt med data för att generera en graf.',
+          style: CupertinoTheme.of(context).textTheme.pickerTextStyle.copyWith(
+                fontSize: 16,
+              ),
         ),
       ),
     );
