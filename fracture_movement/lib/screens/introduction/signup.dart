@@ -5,12 +5,65 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/password_input.dart';
 import 'package:movement_code/components/personal_number_input.dart';
 
+class ConsentModal extends HookWidget {
+  const ConsentModal({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    ValueNotifier<bool> consent = useState(false);
+
+    return CupertinoAlertDialog(
+      title: const Text('Ge ditt samtycke'),
+      content: Column(
+        children: [
+          const Text(
+            'Genom att fortsätta går du med på att din stegdata och dina svar i formulären används i forskningssyfte.',
+          ),
+          const SizedBox(height: 16),
+          CupertinoListTile(
+            leading: CupertinoSwitch(
+              value: consent.value,
+              onChanged: (value) {
+                consent.value = value;
+              },
+            ),
+            title: const Text(
+              'Jag godkänner att delta i studien',
+              maxLines: 2,
+              style: TextStyle(fontSize: 15, color: CupertinoColors.label),
+            ),
+          ),
+        ],
+      ),
+      actions: <CupertinoDialogAction>[
+        CupertinoDialogAction(
+          isDestructiveAction: true,
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
+          child: const Text('Avbryt'),
+        ),
+        CupertinoDialogAction(
+          isDefaultAction: true,
+          onPressed: consent.value
+              ? () {
+                  Navigator.of(context).pop(true);
+                }
+              : null,
+          child: const Text('Fortsätt'),
+        ),
+      ],
+    );
+  }
+}
+
 class SignupScreen extends HookConsumerWidget {
   const SignupScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ValueNotifier<bool> isLoading = useState(false);
+    // ValueNotifier<bool> canSubmit = useState(false);
     final personalIdController = useTextEditingController(
       text: '',
     );
@@ -20,6 +73,11 @@ class SignupScreen extends HookConsumerWidget {
     final confirmPasswordController = useTextEditingController(
       text: '',
     );
+
+    // bool isPasswordValid = passwordController.text.isNotEmpty &&
+    //     passwordController.text == confirmPasswordController.text;
+    // bool canSubmit = personalIdController.text.isNotEmpty && isPasswordValid;
+    print(personalIdController.text);
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
@@ -67,6 +125,11 @@ class SignupScreen extends HookConsumerWidget {
                 onPressed: isLoading.value
                     ? null
                     : () async {
+                        bool? consented = await _showAlertDialog(context);
+                        if (consented == null || !consented) {
+                          return;
+                        }
+
                         try {
                           await ref.read(authProvider.notifier).signup(
                                 Credentials(
@@ -74,7 +137,7 @@ class SignupScreen extends HookConsumerWidget {
                                   passwordController.text,
                                 ),
                               );
-                        } catch (e) {}
+                        } catch (_) {}
                       },
                 child: isLoading.value
                     ? const CupertinoActivityIndicator()
@@ -84,6 +147,13 @@ class SignupScreen extends HookConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Future<bool?> _showAlertDialog(BuildContext context) async {
+    return showCupertinoModalPopup<bool>(
+      context: context,
+      builder: (BuildContext context) => const ConsentModal(),
     );
   }
 }

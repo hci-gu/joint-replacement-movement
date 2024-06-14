@@ -1,176 +1,18 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fracture_movement/screens/history/chart.dart';
 import 'package:fracture_movement/screens/history/state.dart';
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
+import 'package:fracture_movement/state/state.dart';
+import 'package:fracture_movement/theme.dart';
 import 'package:fracture_movement/utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 
-class DataPoint {
-  final DateTime date;
-  final int value;
-
-  DataPoint(this.date, this.value);
-}
-
-const hideChartTitle = AxisTitles(
-  sideTitles: SideTitles(
-    showTitles: false,
-  ),
-);
-
-class DailyQuestionnaireChart extends HookWidget {
-  final List<DataPoint> data;
-
-  const DailyQuestionnaireChart({super.key, required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    double minX = data.first.date.millisecondsSinceEpoch.toDouble();
-    double maxX = DateTime.now().millisecondsSinceEpoch.toDouble();
-    int days = DateTime.now().difference(data.first.date).inDays + 1;
-    ScrollController controller = useScrollController();
-
-    useEffect(() {
-      Future.delayed(Duration.zero, () {
-        if (controller.hasClients) {
-          controller.jumpTo(controller.position.maxScrollExtent);
-        }
-      });
-      return () {};
-    }, [controller.hasClients]);
-
-    return SizedBox(
-      height: 216,
-      child: ListView(
-        controller: controller,
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-        children: [
-          SizedBox(
-            width: days * 48.0,
-            child: LineChart(
-              LineChartData(
-                gridData: const FlGridData(
-                  show: true,
-                  drawHorizontalLine: true,
-                  drawVerticalLine: false,
-                ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  topTitles: hideChartTitle,
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: (maxX - minX) / days,
-                      getTitlesWidget: (value, meta) {
-                        if (value == minX || value == maxX) {
-                          return const SizedBox.shrink();
-                        }
-                        DateTime date =
-                            DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              DateFormat.Md().format(date),
-                              style: const TextStyle(
-                                color: CupertinoColors.systemGrey,
-                                fontSize: 11,
-                              ),
-                            )
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          value.toInt().toString(),
-                          style: const TextStyle(
-                            color: CupertinoColors.systemGrey,
-                            fontSize: 11,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          value.toInt().toString(),
-                          textAlign: TextAlign.right,
-                          style: const TextStyle(
-                            color: CupertinoColors.systemGrey,
-                            fontSize: 11,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                borderData: FlBorderData(
-                  show: false,
-                ),
-                minX: minX,
-                maxX: maxX,
-                minY: 0,
-                maxY: 10,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: [
-                      for (var point in data)
-                        FlSpot(
-                          point.date.millisecondsSinceEpoch.toDouble(),
-                          point.value.toDouble(),
-                        ),
-                    ],
-                    isCurved: false,
-                    barWidth: 2,
-                    isStrokeCapRound: true,
-                    color: CupertinoColors.activeBlue,
-                    dotData: const FlDotData(show: true),
-                  ),
-                ],
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    fitInsideHorizontally: true,
-                    fitInsideVertically: true,
-                    tooltipBgColor: CupertinoColors.systemGrey6,
-                    getTooltipItems: (touchedSpots) {
-                      return touchedSpots.map((touchedSpot) {
-                        return LineTooltipItem(
-                          touchedSpot.y.toInt().toString(),
-                          const TextStyle(
-                            color: CupertinoColors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      }).toList();
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class DailyQuestionnaireList extends StatelessWidget {
+class DailyQuestionnaireList extends ConsumerWidget {
   final Questionnaire questionnaire;
   final List<Answer> answers;
 
@@ -181,10 +23,11 @@ class DailyQuestionnaireList extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     DateTime now = DateTime.now();
 
-    int days = daysForAnswers(answers);
+    int days = ref
+        .watch(questionnaireCountForOccuranceProvider(questionnaire.occurance));
 
     return ListView.builder(
       physics: const NeverScrollableScrollPhysics(),
@@ -231,25 +74,6 @@ class DailyQuestionnaireList extends StatelessWidget {
                               fontSize: 11,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 12,
-                            height: 12,
-                            clipBehavior: Clip.none,
-                            decoration: const BoxDecoration(
-                              color: CupertinoColors.activeOrange,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Text(
-                            'med medicinering',
-                            style: TextStyle(
-                              color: CupertinoColors.systemGrey,
-                              fontWeight: FontWeight.normal,
-                              fontSize: 11,
-                            ),
-                          )
                         ],
                       )
                     ],
@@ -287,10 +111,7 @@ class DailyQuestionnaireList extends StatelessWidget {
                   );
                 }
               },
-              padding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 16,
-              ),
+              padding: paddingForContext(context),
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -353,12 +174,6 @@ class DailyQuestionnaireList extends StatelessWidget {
         painLevel = value;
       }
     });
-    bool tookMedication = false;
-    answer.answers.forEach((key, value) {
-      if (value is String) {
-        tookMedication = value == "Ja";
-      }
-    });
 
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.7,
@@ -371,10 +186,8 @@ class DailyQuestionnaireList extends StatelessWidget {
               height: 24,
               clipBehavior: Clip.none,
               decoration: i == painLevel
-                  ? BoxDecoration(
-                      color: tookMedication
-                          ? CupertinoColors.activeOrange
-                          : CupertinoColors.activeBlue,
+                  ? const BoxDecoration(
+                      color: CupertinoColors.activeBlue,
                       shape: BoxShape.circle,
                     )
                   : null,
@@ -398,7 +211,7 @@ class DailyQuestionnaireList extends StatelessWidget {
   }
 }
 
-class DailyQuestionnaireHistory extends HookConsumerWidget {
+class DailyQuestionnaireHistory extends StatelessWidget {
   final Questionnaire questionnaire;
   final List<Answer> answers;
 
@@ -409,38 +222,15 @@ class DailyQuestionnaireHistory extends HookConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ValueNotifier<bool> chartVisible = useState(true);
-
+  Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(questionnaire.name),
-        trailing: IconButton(
-          onPressed: () {
-            chartVisible.value = !chartVisible.value;
-          },
-          icon: chartVisible.value
-              ? const Icon(
-                  CupertinoIcons.chart_bar_alt_fill,
-                )
-              : const Icon(
-                  CupertinoIcons.chart_bar_alt_fill,
-                  color: CupertinoColors.systemGrey,
-                ),
-        ),
       ),
       child: ListView(
         children: [
           DailyQuestionnaireChart(
-            data: answers
-                .map(
-                  (e) => DataPoint(
-                    e.date,
-                    e.answers['g5j8zrq9amdc2op'] ?? 5,
-                  ),
-                )
-                .sorted((a, b) => a.date.compareTo(b.date))
-                .toList(),
+            data: answersToDataPoints(answers),
           ),
           const Divider(indent: 16, endIndent: 16),
           DailyQuestionnaireList(
@@ -451,9 +241,40 @@ class DailyQuestionnaireHistory extends HookConsumerWidget {
       ),
     );
   }
+
+  List<DataPoint> answersToDataPoints(List<Answer> answers) {
+    if (answers.isEmpty) {
+      return [];
+    }
+
+    answers.sort((a, b) => a.date.compareTo(b.date));
+    DateTime first = answers.first.date;
+    DateTime now = DateTime.now();
+
+    int days = now.difference(first).inDays + 2;
+
+    List<DataPoint> dataPoints = [];
+
+    for (int i = 0; i < days; i++) {
+      DateTime date = DateTime(first.year, first.month, first.day + i);
+      Answer? answer = answers.firstWhereOrNull(
+        (e) => isSameDay(e.date, date),
+      );
+
+      dataPoints.add(
+        DataPoint(
+          i,
+          answer?.answers['g5j8zrq9amdc2op'],
+          answer?.answers['jfemvmwajnsfkex'],
+        ),
+      );
+    }
+
+    return dataPoints;
+  }
 }
 
-class WeeklyQuestionnaireList extends StatelessWidget {
+class WeeklyQuestionnaireList extends ConsumerWidget {
   final Questionnaire questionnaire;
   final List<Answer> answers;
 
@@ -464,10 +285,10 @@ class WeeklyQuestionnaireList extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    int weeks = ref
+        .watch(questionnaireCountForOccuranceProvider(questionnaire.occurance));
     DateTime now = DateTime.now();
-
-    int weeks = weeksForAnswers(answers);
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
@@ -475,7 +296,7 @@ class WeeklyQuestionnaireList extends StatelessWidget {
       ),
       child: ListView.builder(
         shrinkWrap: true,
-        itemCount: weeks + 2,
+        itemCount: weeks + 1,
         itemBuilder: (context, index) {
           int weekIndex = index - 1;
 
@@ -512,7 +333,7 @@ class WeeklyQuestionnaireList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Vecka ${(weeks - weekIndex) + 1}',
+                    'Vecka ${weeks - weekIndex}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
@@ -581,5 +402,82 @@ class HistoryScreen extends ConsumerWidget {
             child: Text('Error: $error'),
           ),
         );
+  }
+}
+
+class OtherHistoryScreen extends ConsumerWidget {
+  const OtherHistoryScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Historik'),
+      ),
+      child: ref.watch(otherQuestionnairesWithAnswersProvider).when(
+            data: (List<QuestionnaireWithAnswers> questionnaires) => ListView(
+              children: [
+                for (var item in questionnaires)
+                  Column(
+                    children: [
+                      CupertinoListTile(
+                        onTap: () {
+                          context.goNamed(
+                            'questionnaire-history',
+                            pathParameters: {
+                              'id': item.questionnaire.id,
+                            },
+                          );
+                        },
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 16,
+                        ),
+                        title: Text(
+                          item.questionnaire.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: item.answers.isNotEmpty
+                            ? Text(
+                                DateFormat.MMMMEEEEd()
+                                    .format(item.answers.first.date),
+                                style: const TextStyle(
+                                  color: CupertinoColors.systemGrey,
+                                  fontSize: 14,
+                                ),
+                              )
+                            : null,
+                        trailing: item.answers.isEmpty
+                            ? const Text(
+                                'Inte besvarad',
+                                style: TextStyle(
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                              )
+                            : const Icon(
+                                CupertinoIcons.check_mark_circled,
+                                color: CupertinoColors.activeGreen,
+                              ),
+                      ),
+                      const Divider(
+                        indent: 16,
+                        endIndent: 16,
+                        height: 0,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            error: (_, __) => const Center(
+              child: Text('error'),
+            ),
+            loading: () => const Center(
+              child: CupertinoActivityIndicator(),
+            ),
+          ),
+    );
   }
 }

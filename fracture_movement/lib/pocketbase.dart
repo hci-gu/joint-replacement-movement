@@ -1,14 +1,15 @@
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
+import 'package:fracture_movement/storage.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 final pb = PocketBase('https://fracture-puff-api.prod.appadem.in');
 // final pb = PocketBase('http://192.168.0.33:8090');
 
-Future<List<Questionnaire>> getQuestionnaires() async {
-  final res = await pb.collection('questionnaires').getList(
-        expand: 'questions,questions.options',
-      );
+Future<List<Questionnaire>> getQuestionnaires([String filter = '']) async {
+  final res = await pb
+      .collection('questionnaires')
+      .getList(expand: 'questions,questions.options', filter: filter);
 
   return res.items.map((e) => Questionnaire.fromRecord(e)).toList();
 }
@@ -34,6 +35,22 @@ Future submitQuestionnaire(Questionnaire questionnaire, String userId,
       'date': date.toIso8601String(),
     },
   );
+}
+
+Future<DateTime?> getEventDate() async {
+  List<Answer> answers = await getAnswersForQuestionnaire('o0kztzavvw04a8c');
+  DateTime? date;
+
+  for (var answer in answers) {
+    // loop keys/vals of answer.answers
+    for (var value in answer.answers.values) {
+      // type of value is string
+      if (value is String && DateTime.tryParse(value) != null) {
+        date = DateTime.parse(value);
+      }
+    }
+  }
+  return date;
 }
 
 Future<DateTime?> getLastStepData() async {

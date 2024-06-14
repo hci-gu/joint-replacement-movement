@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:fracture_movement/pocketbase.dart';
+import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -22,9 +25,7 @@ class Auth extends StateNotifier<RecordAuth?> {
     }
 
     try {
-      state = await pb
-          .collection('users')
-          .authWithPassword(credentials.personalNumber, credentials.password);
+      await login(credentials);
     } catch (e) {
       Storage().clearCredentials();
       rethrow;
@@ -37,6 +38,13 @@ class Auth extends StateNotifier<RecordAuth?> {
           .collection('users')
           .authWithPassword(credentials.personalNumber, credentials.password);
       Storage().storeCredentails(credentials);
+      DateTime? eventDate = Storage().getEventDate();
+      if (eventDate == null) {
+        DateTime? eventDateFromPb = await getEventDate();
+        if (eventDateFromPb != null) {
+          Storage().storeEventDate(eventDateFromPb);
+        }
+      }
     } catch (e) {
       rethrow;
     }
@@ -83,6 +91,7 @@ class Auth extends StateNotifier<RecordAuth?> {
   Future logout() async {
     state = null;
     Storage().clearCredentials();
+    Storage().clearEventDate();
   }
 
   Future toggleNotifications(bool enabled) async {
@@ -127,10 +136,23 @@ class Auth extends StateNotifier<RecordAuth?> {
 
 final authProvider = StateNotifierProvider<Auth, RecordAuth?>((ref) => Auth());
 
-// Future submitQuestionnaire(String name, Map<String, dynamic> answers) async {
-//   await pb.collection('questionnaires').create(body: {
-//     'name': name,
-//     'user': pb.authStore.model!.id,
-//     'answers': answers,
-//   });
-// }
+final eventDateProvider = StateProvider<DateTime?>((ref) {
+  final DateTime? date = Storage().getEventDate();
+  return date;
+});
+
+final questionnaireCountForOccuranceProvider =
+    StateProvider.family<int, Occurance>((ref, occurance) {
+  final DateTime? eventDate = ref.watch(eventDateProvider);
+
+  DateTime now = DateTime.now();
+  switch (occurance) {
+    case Occurance.monthly:
+      return now.difference(eventDate ?? DateTime.now()).inDays ~/ 30 + 1;
+    case Occurance.weekly:
+      return now.difference(eventDate ?? DateTime.now()).inDays ~/ 7 + 1;
+    case Occurance.daily:
+    default:
+      return now.difference(eventDate ?? DateTime.now()).inDays + 1;
+  }
+});

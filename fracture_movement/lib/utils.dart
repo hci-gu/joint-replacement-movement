@@ -18,21 +18,3 @@ bool isSameWeek(DateTime a, DateTime b) {
 
   return startOfWeek1 == startOfWeek2;
 }
-
-int daysForAnswers(List<Answer> answers) {
-  if (answers.isEmpty) return 0;
-
-  answers.sort((a, b) => a.date.compareTo(b.date));
-  DateTime now = DateTime.now();
-  DateTime first = answers.first.date;
-  return now.difference(first).inDays + 1;
-}
-
-int weeksForAnswers(List<Answer> answers) {
-  if (answers.isEmpty) return 0;
-
-  answers.sort((a, b) => a.date.compareTo(b.date));
-  DateTime now = DateTime.now();
-  DateTime first = answers.first.date;
-  return now.difference(first).inDays ~/ 7 + 1;
-}

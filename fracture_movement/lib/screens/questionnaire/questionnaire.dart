@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
+import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/screens/questionnaire/widgets/question.dart';
 import 'package:go_router/go_router.dart';
@@ -172,9 +173,7 @@ class QuestionnaireWidget extends HookConsumerWidget {
                     PageView(
                       controller: controller,
                       scrollDirection: Axis.vertical,
-                      physics: questionnaire.canGoForward
-                          ? const AlwaysScrollableScrollPhysics()
-                          : const ForwardBlockedScrollPhysics(),
+                      physics: const AlwaysScrollableScrollPhysics(),
                       onPageChanged: (value) {
                         errorMessage.value = null;
                         onPageChange(value);
@@ -224,11 +223,6 @@ class QuestionnaireWidget extends HookConsumerWidget {
                                               !questionnaire.canSubmit
                                           ? null
                                           : () async {
-                                              if (!questionnaire.canGoForward) {
-                                                errorMessage.value =
-                                                    'Du måste svara på frågan';
-                                                return;
-                                              }
                                               if (questionnaire.isLast) {
                                                 await ref
                                                     .read(questionnaireProvider(

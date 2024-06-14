@@ -5,6 +5,7 @@ import 'package:fracture_movement/screens/home.dart';
 import 'package:fracture_movement/screens/introduction/introduction.dart';
 import 'package:fracture_movement/screens/introduction/login.dart';
 import 'package:fracture_movement/screens/introduction/signup.dart';
+import 'package:fracture_movement/screens/onboarding.dart';
 import 'package:fracture_movement/screens/questionnaire/questionnaire.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +23,7 @@ class RouterNotifier extends ChangeNotifier {
 
   String? _redirectLogic(BuildContext context, GoRouterState state) {
     bool loggedIn = _ref.read(authProvider) != null;
+    DateTime? eventDate = _ref.read(eventDateProvider);
 
     // handle logging in
     if (!loggedIn && state.matchedLocation == '/loading') {
@@ -31,6 +33,9 @@ class RouterNotifier extends ChangeNotifier {
     }
 
     if (loggedIn && _isLoginRoute(state.matchedLocation)) {
+      if (eventDate == null) {
+        return '/onboarding';
+      }
       return '/';
     }
     if (!loggedIn && !_isLoginRoute(state.matchedLocation)) {
@@ -48,14 +53,33 @@ class RouterNotifier extends ChangeNotifier {
 
 final routerProvider = Provider.family<GoRouter, bool>((ref, loggedIn) {
   final routerNotifier = RouterNotifier(ref);
+  DateTime? eventDate = ref.watch(eventDateProvider);
 
   return GoRouter(
-    initialLocation: loggedIn ? '/loading' : '/introduction',
+    initialLocation: eventDate == null
+        ? '/onboarding'
+        : loggedIn
+            ? '/loading'
+            : '/introduction',
     routes: [
       GoRoute(
         path: '/loading',
         name: 'loading',
         builder: (context, state) => const LoadingScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+        routes: [
+          GoRoute(
+            path: 'questionnaire/:id',
+            name: 'onboarding-questionnaire',
+            builder: (context, state) => QuestionnaireScreen(
+              id: state.pathParameters['id'] ?? '',
+            ),
+          )
+        ],
       ),
       GoRoute(
         path: '/',
@@ -80,6 +104,11 @@ final routerProvider = Provider.family<GoRouter, bool>((ref, loggedIn) {
                 ),
               )
             ],
+          ),
+          GoRoute(
+            path: 'history',
+            name: 'history-other',
+            builder: (context, state) => const OtherHistoryScreen(),
           ),
           GoRoute(
             path: 'questionnaire/:id',

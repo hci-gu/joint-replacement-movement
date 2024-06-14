@@ -4,6 +4,7 @@ import 'package:fracture_movement/screens/profile.dart';
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/screens/step_data/step_data.dart';
+import 'package:fracture_movement/state/state.dart';
 import 'package:fracture_movement/utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -95,7 +96,7 @@ class Home extends ConsumerWidget {
     return CupertinoPageScaffold(
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: ref.watch(questionnairesProvider).when(
                 data: (data) => _body(context, ref, data),
                 error: (_, __) {
@@ -115,6 +116,7 @@ class Home extends ConsumerWidget {
   Widget _body(
       BuildContext context, WidgetRef ref, HomeScreenQuestionnaires home) {
     return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 16),
       children: [
         const Text(
           'Idag',
@@ -137,39 +139,56 @@ class Home extends ConsumerWidget {
           crossAxisSpacing: 16,
           shrinkWrap: true,
           childAspectRatio: 1.3,
+          physics: const NeverScrollableScrollPhysics(),
           children: [
             for (final questionnaire in home.unanswered)
-              QuestionnaireItem(
-                questionnaire: questionnaire,
-              ),
+              QuestionnaireItem(questionnaire: questionnaire),
           ],
         ),
-        const Divider(height: 32),
-        _recurringQuestionnaireSection(context, home.daily, home.dailyAnswers),
-        _recurringQuestionnaireSection(
-            context, home.weekly, home.weeklyAnswers),
+        const SizedBox(height: 16),
         const Text(
-          'Tidigare frågeformulär',
+          'Historik',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
-        // 2x2 grid of questionnaires
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          shrinkWrap: true,
-          childAspectRatio: 1.3,
-          children: [
-            for (final questionnaire in home.answered)
-              QuestionnaireItem(
-                questionnaire: questionnaire,
-              ),
-          ],
+        const Divider(height: 32),
+        _questionnaireHistorySection(
+          context,
+          ref,
+          home.daily,
+          home.dailyAnswers,
         ),
+        _questionnaireHistorySection(
+          context,
+          ref,
+          home.weekly,
+          home.weeklyAnswers,
+        ),
+        _otherHistory(context, home.answered),
+        // const Text(
+        //   'Tidigare frågeformulär',
+        //   style: TextStyle(
+        //     fontSize: 18,
+        //     fontWeight: FontWeight.w600,
+        //   ),
+        // ),
+        // // 2x2 grid of questionnaires
+        // const SizedBox(height: 16),
+        // GridView.count(
+        //   crossAxisCount: 2,
+        //   mainAxisSpacing: 16,
+        //   crossAxisSpacing: 16,
+        //   shrinkWrap: true,
+        //   childAspectRatio: 1.3,
+        //   children: [
+        //     for (final questionnaire in home.answered)
+        //       QuestionnaireItem(
+        //         questionnaire: questionnaire,
+        //       ),
+        //   ],
+        // ),
       ],
     );
   }
@@ -201,11 +220,11 @@ class Home extends ConsumerWidget {
     );
   }
 
-  Widget _recurringQuestionnaireSection(
-      BuildContext context, Questionnaire questionnaire, List<Answer> answers) {
-    int remainingDaily = questionnaire.occurance == Occurance.daily
-        ? daysForAnswers(answers) - answers.length + 1
-        : weeksForAnswers(answers) - answers.length + 1;
+  Widget _questionnaireHistorySection(BuildContext context, WidgetRef ref,
+      Questionnaire questionnaire, List<Answer> answers) {
+    int remaining = ref.watch(
+            questionnaireCountForOccuranceProvider(questionnaire.occurance)) -
+        answers.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,11 +235,11 @@ class Home extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Historik för ${questionnaire.name}',
+                questionnaire.name,
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 4),
-              remainingDaily > 0
+              remaining > 0
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -231,7 +250,7 @@ class Home extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _displayQuestionsLeft(remainingDaily),
+                          _displayQuestionsLeft(remaining),
                           style: const TextStyle(
                             fontSize: 14,
                             color: CupertinoColors.systemGrey,
@@ -249,7 +268,36 @@ class Home extends ConsumerWidget {
           },
           trailing: const CupertinoListTileChevron(),
         ),
-        const Divider(height: 32),
+        const Divider(height: 24),
+      ],
+    );
+  }
+
+  Widget _otherHistory(BuildContext context, List<Questionnaire> answered) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CupertinoListTile(
+          padding: EdgeInsets.zero,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Övriga svar', style: TextStyle(fontSize: 16)),
+              Text(
+                '${answered.length} besvarade frågeformulär',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: CupertinoColors.systemGrey,
+                ),
+              )
+            ],
+          ),
+          onTap: () {
+            context.goNamed('history-other');
+          },
+          trailing: const CupertinoListTileChevron(),
+        ),
+        const Divider(height: 24),
       ],
     );
   }

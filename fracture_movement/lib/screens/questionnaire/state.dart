@@ -80,13 +80,6 @@ class Questionnaire {
         .toList();
   }
 
-  bool get canGoForward {
-    if (currentIsIntro) return true;
-    if (answers[current.id] == null) return false;
-
-    return true;
-  }
-
   bool get canSubmit {
     return availableQuestions.every((question) {
       if (question.dependsOn != null) {
@@ -161,12 +154,26 @@ class QuestionnaireNotifier
   final DateTime startDate = DateTime.now();
 
   @override
-  build(String arg) => getQuestionnaire(arg);
+  build(String arg) async {
+    Questionnaire questionnaire = await getQuestionnaire(arg);
+    if (answers.isEmpty && questionnaire.id == 'o0kztzavvw04a8c') {
+      answers['u1w0g5x75afluwp'] = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+        12,
+      );
+      return questionnaire.copyWith(answers: answers);
+    }
+    return questionnaire;
+  }
 
   void setPageIndex(int index) async {
-    state = await AsyncValue.guard(() async {
+    var nextState = await AsyncValue.guard(() async {
       return state.value!.copyWith(pageIndex: index);
     });
+
+    state = nextState;
   }
 
   Future<bool> answer(String question, dynamic answer) async {
@@ -188,6 +195,21 @@ class QuestionnaireNotifier
         startDate,
         date ?? DateTime.now(),
       );
+      if (state.value!.id == 'o0kztzavvw04a8c') {
+        DateTime? eventDate;
+        for (var value in state.value!.answersToSubmit.values) {
+          // type of value is string
+          if (value is String && DateTime.tryParse(value) != null) {
+            eventDate = DateTime.parse(value);
+          }
+        }
+
+        if (eventDate != null) {
+          await Storage().storeEventDate(eventDate);
+          ref.invalidate(eventDateProvider);
+        }
+      }
+
       if (state.value!.containsStepDataAccess) {
         // find answer of type date in answers
         DateTime date = state.value!.answers.values
@@ -217,16 +239,20 @@ class QuestionnaireNotifier
 }
 
 class HomeScreenQuestionnaires {
+  final int days;
   final Questionnaire daily;
   final List<Answer> dailyAnswers;
+  final int weeks;
   final Questionnaire weekly;
   final List<Answer> weeklyAnswers;
   final List<Questionnaire> answered;
   final List<Questionnaire> unanswered;
 
   HomeScreenQuestionnaires({
+    required this.days,
     required this.daily,
     required this.dailyAnswers,
+    required this.weeks,
     required this.weekly,
     required this.weeklyAnswers,
     required this.unanswered,
@@ -234,9 +260,8 @@ class HomeScreenQuestionnaires {
   });
 
   bool get answeredEverything {
-    int remainingDaily = daysForAnswers(dailyAnswers) - dailyAnswers.length + 1;
-    int remainingWeekly =
-        weeksForAnswers(weeklyAnswers) - weeklyAnswers.length + 1;
+    int remainingDaily = days - dailyAnswers.length + 1;
+    int remainingWeekly = weeks - weeklyAnswers.length + 1;
 
     return unanswered.isEmpty && remainingDaily == 0 && remainingWeekly == 0;
   }
@@ -254,6 +279,9 @@ class HomeScreenQuestionnaires {
 
 final questionnairesProvider =
     FutureProvider<HomeScreenQuestionnaires>((ref) async {
+  int days = ref.watch(questionnaireCountForOccuranceProvider(Occurance.daily));
+  int weeks =
+      ref.watch(questionnaireCountForOccuranceProvider(Occurance.weekly));
   List<Questionnaire> questionnaires = await getQuestionnaires();
   List<Answer> answers = await ref.watch(answersProvider.future);
 
@@ -283,8 +311,10 @@ final questionnairesProvider =
       .toList();
 
   return HomeScreenQuestionnaires(
+    days: days,
     daily: dailyQuestionnaire,
     dailyAnswers: dailyAnswers,
+    weeks: weeks,
     weekly: weeklyQuestionnaire,
     weeklyAnswers: weeklyAnswers,
     unanswered: questionnaires.where((element) => !element.answered).toList(),

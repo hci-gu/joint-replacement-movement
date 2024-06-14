@@ -43,6 +43,15 @@ class StepDataQuestion extends HookConsumerWidget {
     );
   }
 
+  Widget _noDataMessage() {
+    return const Padding(
+      padding: EdgeInsets.all(16.0),
+      child: Text(
+        'Du verkar inte ha någon stegdata, du kan fortsätta och fylla i dagboken kring smärta men alla funktioner kommer inte vara tillgängliga.',
+      ),
+    );
+  }
+
   Widget _body(WidgetRef ref, HealthData data, ValueNotifier<bool> loading) {
     if (data.hasData) {
       return Scrollbar(
@@ -56,18 +65,6 @@ class StepDataQuestion extends HookConsumerWidget {
                   HealthListTile(items: data.itemsForType(type), type: type),
               ],
             ),
-            Center(
-              child: CupertinoButton.filled(
-                child: const Text(
-                  'Fortsätt',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-                onPressed: () => onAnswer(true),
-              ),
-            )
           ],
         ),
       );
@@ -107,6 +104,10 @@ class StepDataQuestion extends HookConsumerWidget {
           ),
         ),
       );
+    }
+
+    if (data.isAuthorized && !data.hasData) {
+      return _noDataMessage();
     }
     return const RedoPermissions();
   }

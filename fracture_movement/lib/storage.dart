@@ -13,6 +13,7 @@ class Storage {
     final String? password = prefs.getString('password');
 
     if (personalNumber != null && password != null) {
+      print(personalNumber);
       return Credentials(personalNumber, password);
     }
 
@@ -43,6 +44,10 @@ class Storage {
       return DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
     }
     return null;
+  }
+
+  Future clearEventDate() {
+    return prefs.remove('eventDate');
   }
 
   static final Storage _instance = Storage._internal();

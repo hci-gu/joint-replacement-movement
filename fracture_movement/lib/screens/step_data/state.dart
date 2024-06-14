@@ -1,27 +1,12 @@
 import 'package:fracture_movement/pocketbase.dart';
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
+import 'package:fracture_movement/state/state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/state.dart';
 
 bool isSameDay(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month && a.day == b.day;
 }
-
-final eventDateProvider = FutureProvider<DateTime?>((ref) async {
-  List<Answer> answers = await getAnswersForQuestionnaire('o0kztzavvw04a8c');
-  DateTime? date;
-
-  for (var answer in answers) {
-    // loop keys/vals of answer.answers
-    for (var value in answer.answers.values) {
-      // type of value is string
-      if (value is String && DateTime.tryParse(value) != null) {
-        date = DateTime.parse(value);
-      }
-    }
-  }
-  return date;
-});
 
 enum DisplayMode {
   day,
@@ -46,7 +31,7 @@ final displayModeProvider =
     StateProvider<DisplayMode>((ref) => DisplayMode.day);
 
 final stepDataProvider = FutureProvider<List<HealthDataPoint>>((ref) async {
-  DateTime? eventDate = await ref.watch(eventDateProvider.future);
+  DateTime? eventDate = ref.watch(eventDateProvider);
 
   if (eventDate == null) {
     return [];
@@ -102,7 +87,7 @@ List<DataPoint> groupDataPointsByDate(
 }
 
 final chartDataProvider = FutureProvider<ChartData>((ref) async {
-  DateTime? eventDate = await ref.watch(eventDateProvider.future);
+  DateTime? eventDate = ref.watch(eventDateProvider);
   if (eventDate == null) {
     return ChartData([], DateTime.now());
   }

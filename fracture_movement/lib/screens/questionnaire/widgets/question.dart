@@ -69,7 +69,7 @@ class PainMedicationQuestion extends HookWidget {
             ),
           ),
         const CupertinoTextField(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           placeholder: 'Om annan typ vilken medicin har du tagit?',
         )
       ],
@@ -285,8 +285,19 @@ class QuestionWidget extends StatelessWidget {
           height: 250,
           child: CupertinoDatePicker(
             mode: CupertinoDatePickerMode.date,
-            maximumDate: DateTime.now().add(const Duration(days: 1)),
-            initialDateTime: answer ?? DateTime.now(),
+            maximumDate: DateTime(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day,
+              13,
+            ),
+            initialDateTime: answer ??
+                DateTime(
+                  DateTime.now().year,
+                  DateTime.now().month,
+                  DateTime.now().day,
+                  12,
+                ),
             onDateTimeChanged: (value) {
               onAnswer(value, false);
             },
