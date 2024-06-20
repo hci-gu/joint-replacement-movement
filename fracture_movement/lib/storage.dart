@@ -13,7 +13,6 @@ class Storage {
     final String? password = prefs.getString('password');
 
     if (personalNumber != null && password != null) {
-      print(personalNumber);
       return Credentials(personalNumber, password);
     }
 

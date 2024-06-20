@@ -63,15 +63,15 @@ extension MedicationDisplayExtension on Medication {
   Color get color {
     switch (this) {
       case Medication.paracetamol:
-        return Colors.orange.shade900;
-      case Medication.antiInflammatory:
-        return Colors.orange.shade700;
-      case Medication.morphineShort:
-        return Colors.orange.shade500;
-      case Medication.morphineLong:
         return Colors.orange.shade300;
+      case Medication.antiInflammatory:
+        return Colors.orange.shade800;
+      case Medication.morphineShort:
+        return Colors.green.shade500;
+      case Medication.morphineLong:
+        return Colors.green.shade800;
       case Medication.other:
-        return Colors.orange.shade100;
+        return Colors.grey.shade500;
     }
   }
 }
@@ -131,7 +131,7 @@ class DailyQuestionnaireChart extends HookWidget {
     }, [controller.hasClients]);
 
     return SizedBox(
-      height: 216,
+      height: 236,
       child: Scrollbar(
         child: Stack(
           children: [
@@ -140,7 +140,7 @@ class DailyQuestionnaireChart extends HookWidget {
               controller: controller,
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.only(
-                top: 24,
+                top: 36,
                 left: 16,
                 right: 16,
                 bottom: 8,
@@ -379,10 +379,10 @@ class DailyQuestionnaireChart extends HookWidget {
               topLeft: Radius.circular(4),
               topRight: Radius.circular(4),
             ),
-            borderSide: BorderSide(
-              color: CupertinoColors.black.withOpacity(0.7),
-              width: 1,
-            ),
+            // borderSide: BorderSide(
+            //   color: CupertinoColors.black.withOpacity(1),
+            //   width: 0.5,
+            // ),
             rodStackItems: e.medication != null
                 ? medications.map((entry) {
                     double value = e.medication![entry]!.toDouble();
@@ -391,8 +391,13 @@ class DailyQuestionnaireChart extends HookWidget {
                       currentY,
                       currentY + value,
                       entry.color,
+                      const BorderSide(
+                        color: CupertinoColors.white,
+                        width: 2.5,
+                      ),
                     );
                     currentY += value;
+                    // currentY += 0.5;
                     return rod;
                   }).toList()
                 : [],

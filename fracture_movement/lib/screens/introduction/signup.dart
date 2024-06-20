@@ -63,7 +63,6 @@ class SignupScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ValueNotifier<bool> isLoading = useState(false);
-    // ValueNotifier<bool> canSubmit = useState(false);
     final personalIdController = useTextEditingController(
       text: '',
     );
@@ -73,11 +72,6 @@ class SignupScreen extends HookConsumerWidget {
     final confirmPasswordController = useTextEditingController(
       text: '',
     );
-
-    // bool isPasswordValid = passwordController.text.isNotEmpty &&
-    //     passwordController.text == confirmPasswordController.text;
-    // bool canSubmit = personalIdController.text.isNotEmpty && isPasswordValid;
-    print(personalIdController.text);
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
