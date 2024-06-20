@@ -118,7 +118,7 @@ class PainSlider extends HookWidget {
         ),
         const SizedBox(height: 8),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(
@@ -138,24 +138,27 @@ class PainSlider extends HookWidget {
             ).toList(),
           ),
         ),
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Expanded(
-              child: CupertinoSlider(
-                value: sliderValue.value,
-                onChanged: (value) {
-                  sliderValue.value = value;
-                },
-                onChangeEnd: (value) {
-                  onAnswer(value.toInt());
-                },
-                min: 0,
-                max: 10,
-                divisions: 10,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Expanded(
+                child: CupertinoSlider(
+                  value: sliderValue.value,
+                  onChanged: (value) {
+                    sliderValue.value = value;
+                  },
+                  onChangeEnd: (value) {
+                    onAnswer(value.toInt());
+                  },
+                  min: 0,
+                  max: 10,
+                  divisions: 10,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

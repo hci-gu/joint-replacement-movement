@@ -98,11 +98,15 @@ class Auth extends StateNotifier<RecordAuth?> {
     try {
       if (enabled) {
         await Push.instance.requestPermission();
+        String? token = await Push.instance.token;
+        await pb.collection('users').update(state!.record!.id, body: {
+          'device_token': token,
+        });
+      } else {
+        await pb.collection('users').update(state!.record!.id, body: {
+          'device_token': null,
+        });
       }
-      String? token = await Push.instance.token;
-      await pb.collection('users').update(state!.record!.id, body: {
-        'device_token': enabled ? token : null,
-      });
 
       state = await pb.collection('users').authRefresh();
     } catch (e) {

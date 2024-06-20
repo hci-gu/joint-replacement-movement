@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/password_input.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UpdatePasswordForm extends HookConsumerWidget {
   const UpdatePasswordForm({super.key});
@@ -106,64 +107,155 @@ class EnableNotifications extends ConsumerWidget {
   }
 }
 
+class ContactInfo extends StatelessWidget {
+  const ContactInfo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      TextSpan(
+        children: [
+          const TextSpan(
+            text:
+                'Om det är något du undrar över kan du kontakta oss. Kontaktperson för projektet är Erik Börjesson som du kan nå via ',
+            style: TextStyle(
+              fontSize: 15,
+              color: CupertinoColors.black,
+            ),
+          ),
+          WidgetSpan(
+            child: GestureDetector(
+              onTap: () {
+                launchUrl(Uri.parse('mailto:erik.borjesson@vgregion.se'));
+              },
+              child: const Text(
+                'erik.borjesson@vgregion.se',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: CupertinoColors.activeBlue,
+                ),
+              ),
+            ),
+          ),
+          const TextSpan(
+            text: '. ',
+            style: TextStyle(
+              fontSize: 15,
+              color: CupertinoColors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CupertinoPageScaffold(
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ListView(
-                shrinkWrap: true,
-                children: const [
-                  Text(
-                    'Profil',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
-                  ),
-                  Divider(),
-                  SizedBox(height: 32),
-                  UpdatePasswordForm(),
-                  SizedBox(height: 32),
-                  EnableNotifications(),
-                ],
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: ListView(
+          padding: const EdgeInsets.only(top: 16, bottom: 100),
+          shrinkWrap: true,
+          children: [
+            const Text(
+              'Profil',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
+            ),
+            const Divider(),
+            const SizedBox(height: 32),
+            const UpdatePasswordForm(),
+            const SizedBox(height: 32),
+            const EnableNotifications(),
+            const Divider(),
+            const SizedBox(height: 16),
+            _aboutTheStudy(context),
+            const SizedBox(height: 16),
+            const Divider(),
+            CupertinoButton(
+              child: const Text('Logga ut'),
+              onPressed: () {
+                ref.read(authProvider.notifier).logout();
+                context.goNamed('introduction');
+              },
+            ),
+            const SizedBox(height: 8),
+            CupertinoButton(
+              child: const Text(
+                'Radera konto',
+                style: TextStyle(
+                  color: CupertinoColors.destructiveRed,
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Divider(),
-                  CupertinoButton(
-                    child: const Text('Logga ut'),
-                    onPressed: () {
-                      ref.read(authProvider.notifier).logout();
-                      context.goNamed('introduction');
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  CupertinoButton(
-                    child: const Text(
-                      'Radera konto',
-                      style: TextStyle(
-                        color: CupertinoColors.destructiveRed,
-                      ),
-                    ),
-                    onPressed: () {
-                      ref.read(authProvider.notifier).deleteAccount();
-                      context.goNamed('introduction');
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _versionNumber(),
-                ],
-              ),
-            ],
-          ),
+              onPressed: () async {
+                if (await _showDeleteDialog(context) ?? false) {
+                  ref.read(authProvider.notifier).deleteAccount();
+                  if (context.mounted) {
+                    context.goNamed('introduction');
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            _versionNumber(),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _aboutTheStudy(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Om Studien',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        SizedBox(height: 16),
+        Text(
+          'Du som givit ditt samtycke till att delta i detta forskningsprojekt är mycket viktig för oss. I just detta projekt är ditt bidrag helt avgörande då nästan all den data vi ska analysera framöver är sådant som du kommer att rapportera till oss om hur du mår och hur du ser på olika delar i den behandling du får.',
+          style: TextStyle(fontSize: 16),
+        ),
+        SizedBox(height: 16),
+        Text(
+          'Studien är en del av ett forskningsprojekt vid Sahlgrenska Universitetssjukhuset och Göteborgs Universitet.',
+          style: TextStyle(fontSize: 16),
+        ),
+        SizedBox(height: 16),
+        ContactInfo(),
+      ],
+    );
+  }
+
+  Future _showDeleteDialog(BuildContext context) {
+    return showCupertinoDialog(
+      context: context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text('Radera konto'),
+          content: const Text('Är du säker på att du vill radera ditt konto?'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Avbryt'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              child: const Text('Radera'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

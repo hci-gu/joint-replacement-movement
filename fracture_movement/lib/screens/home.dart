@@ -167,28 +167,6 @@ class Home extends ConsumerWidget {
           home.weeklyAnswers,
         ),
         _otherHistory(context, home.answered),
-        // const Text(
-        //   'Tidigare frågeformulär',
-        //   style: TextStyle(
-        //     fontSize: 18,
-        //     fontWeight: FontWeight.w600,
-        //   ),
-        // ),
-        // // 2x2 grid of questionnaires
-        // const SizedBox(height: 16),
-        // GridView.count(
-        //   crossAxisCount: 2,
-        //   mainAxisSpacing: 16,
-        //   crossAxisSpacing: 16,
-        //   shrinkWrap: true,
-        //   childAspectRatio: 1.3,
-        //   children: [
-        //     for (final questionnaire in home.answered)
-        //       QuestionnaireItem(
-        //         questionnaire: questionnaire,
-        //       ),
-        //   ],
-        // ),
       ],
     );
   }
@@ -304,9 +282,9 @@ class Home extends ConsumerWidget {
 
   String _displayQuestionsLeft(int remaining) {
     if (remaining == 1) {
-      return 'Du har 1 obesvarad fråga';
+      return 'Du har 1 obesvarat formulär';
     }
-    return 'Du har $remaining obesvarade frågor';
+    return 'Du har $remaining obesvarade formulär';
   }
 }
 

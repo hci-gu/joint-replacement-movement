@@ -72,16 +72,24 @@ extension OccuranceExtensions on Occurance {
           lastAnswered.day + 1,
         );
       case Occurance.weekly:
+        int weekday = lastAnswered.weekday;
+
+        int daysUntilMonday;
+        if (weekday == DateTime.sunday) {
+          daysUntilMonday = 1;
+        } else {
+          daysUntilMonday = (8 - weekday) % 7;
+        }
         return DateTime(
           lastAnswered.year,
           lastAnswered.month,
-          lastAnswered.day + 7,
+          lastAnswered.day + daysUntilMonday,
         );
       case Occurance.monthly:
         return DateTime(
           lastAnswered.year,
           lastAnswered.month + 1,
-          lastAnswered.day,
+          1,
         );
     }
   }

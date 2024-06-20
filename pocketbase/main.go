@@ -92,20 +92,30 @@ func sendNotification(token *token.Token, notification *apns2.Notification) {
 func answeredQuestionnaire(answeredDate time.Time, occurance string) bool {
 	var nextDueDate time.Time
 
-	// Determine the next due date based on the occurrence
 	switch occurance {
 	case "daily":
+		// Add one day to the answered date, but ignore the time
 		nextDueDate = answeredDate.AddDate(0, 0, 1) // Add one day
 	case "weekly":
-		nextDueDate = answeredDate.AddDate(0, 0, 7) // Add one week
+		weekday := answeredDate.Weekday()
+		var daysUntilMonday int
+		if weekday == time.Sunday {
+			daysUntilMonday = 1
+		} else {
+			daysUntilMonday = (8 - int(weekday)) % 7
+		}
+		nextDueDate = answeredDate.AddDate(0, 0, daysUntilMonday)
 	default:
 		// Optionally handle unexpected occurrence value
 		return false
 	}
+	nextDueDate = time.Date(nextDueDate.Year(), nextDueDate.Month(), nextDueDate.Day(), 0, 0, 0, 0, nextDueDate.Location())
 
 	// Get the current date
 	currentDate := time.Now()
 
+	log.Println("Answered date: " + answeredDate.String())
+	log.Println("Next due date: " + nextDueDate.String())
 	// Check if the current date is past the next due date
 	return nextDueDate.After(currentDate)
 }
@@ -113,12 +123,15 @@ func answeredQuestionnaire(answeredDate time.Time, occurance string) bool {
 func notificationToSend(app *pocketbase.PocketBase, user *models.Record, questionnaires []*models.Record) *apns2.Notification {
 	questionnairesToAnswer := make([]*models.Record, 0)
 	for _, questionnaire := range questionnaires {
-		// log occurance of questionnaire
-		log.Println("Questionnaire occurance: ", questionnaire.Get("occurance").(string))
-		answered, _ := app.Dao().FindFirstRecordByFilter("answers", "user = {:user} && questionnaire = {:questionnaire}", dbx.Params{
+		answers, _ := app.Dao().FindRecordsByFilter("answers", "user = {:user} && questionnaire = {:questionnaire}", "-date", 1, 0, dbx.Params{
 			"user":          user.Id,
 			"questionnaire": questionnaire.Id,
 		})
+		if len(answers) == 0 {
+			questionnairesToAnswer = append(questionnairesToAnswer, questionnaire)
+			continue
+		}
+		answered := answers[0]
 
 		if answered == nil || !answeredQuestionnaire(answered.Get("date").(types.DateTime).Time(), questionnaire.Get("occurance").(string)) {
 			questionnairesToAnswer = append(questionnairesToAnswer, questionnaire)
