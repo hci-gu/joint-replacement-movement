@@ -120,7 +120,6 @@ class ContactInfo extends StatelessWidget {
                 'Om det är något du undrar över kan du kontakta oss. Kontaktperson för projektet är Erik Börjesson som du kan nå via ',
             style: TextStyle(
               fontSize: 15,
-              color: CupertinoColors.black,
             ),
           ),
           WidgetSpan(
@@ -141,7 +140,6 @@ class ContactInfo extends StatelessWidget {
             text: '. ',
             style: TextStyle(
               fontSize: 15,
-              color: CupertinoColors.black,
             ),
           ),
         ],

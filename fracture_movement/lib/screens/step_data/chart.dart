@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/screens/step_data/state.dart';
+import 'package:fracture_movement/utils.dart';
 
 const double pointWidth = 24;
 
@@ -40,7 +41,9 @@ class StepDataChart extends HookWidget {
     }
     final lineBarsData = [
       LineChartBarData(
-        color: CupertinoColors.darkBackgroundGray,
+        color: isDarkMode(context)
+            ? CupertinoColors.lightBackgroundGray
+            : CupertinoColors.darkBackgroundGray,
         dotData: FlDotData(
           show: displayMode != DisplayMode.day,
           getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(

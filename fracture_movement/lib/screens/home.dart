@@ -24,7 +24,6 @@ class QuestionnaireItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: CupertinoColors.systemGrey4),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:fracture_movement/screens/step_data/state.dart';
+import 'package:fracture_movement/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class AverageSteps extends ConsumerWidget {
@@ -7,13 +8,11 @@ class AverageSteps extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    TextStyle textStyle = CupertinoTheme.of(context)
-        .textTheme
-        .tabLabelTextStyle
-        .copyWith(
-            fontSize: 16,
-            color: CupertinoColors.black,
-            fontWeight: FontWeight.w300);
+    TextStyle textStyle =
+        CupertinoTheme.of(context).textTheme.tabLabelTextStyle.copyWith(
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+            );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
@@ -21,7 +20,9 @@ class AverageSteps extends ConsumerWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: CupertinoColors.black.withOpacity(0.1),
+            color: isDarkMode(context)
+                ? CupertinoColors.white.withOpacity(0.1)
+                : CupertinoColors.black.withOpacity(0.1),
           ),
         ),
         padding: const EdgeInsets.all(8.0),
@@ -50,7 +51,6 @@ class AverageSteps extends ConsumerWidget {
                       context,
                       ref,
                       averageStepsBeforeProvider,
-                      CupertinoColors.black,
                     ),
                     Text('Steg före', style: textStyle),
                   ],
@@ -76,8 +76,9 @@ class AverageSteps extends ConsumerWidget {
     );
   }
 
-  Widget _averageSteps(BuildContext context, WidgetRef ref,
-      FutureProvider<double> provider, Color color) {
+  Widget _averageSteps(
+      BuildContext context, WidgetRef ref, FutureProvider<double> provider,
+      [Color? color]) {
     return ref.watch(provider).when(
           data: (steps) => _stepWidget(context, steps, color),
           error: (_, __) => const Center(child: Text('-')),
@@ -90,7 +91,7 @@ class AverageSteps extends ConsumerWidget {
         );
   }
 
-  Widget _stepWidget(BuildContext context, double steps, Color color) {
+  Widget _stepWidget(BuildContext context, double steps, [Color? color]) {
     return Text(
       steps.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} '),

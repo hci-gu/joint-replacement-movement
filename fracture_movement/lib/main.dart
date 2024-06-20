@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/router.dart';
 import 'package:fracture_movement/state/state.dart';
@@ -79,14 +80,8 @@ class NotificationLauncherWrapper extends HookWidget {
         handleLaunchFromNotification(data);
       });
 
-      // final onBackgroundMessageSubscription =
-      //     Push.instance.addOnBackgroundMessage((message) {
-      //   handleLaunchFromNotification(message);
-      // });
-
       return () {
         onNotificationTap.cancel();
-        // onBackgroundMessageSubscription.cancel();
       };
     }, []);
 

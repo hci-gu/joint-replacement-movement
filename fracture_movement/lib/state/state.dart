@@ -38,12 +38,9 @@ class Auth extends StateNotifier<RecordAuth?> {
           .collection('users')
           .authWithPassword(credentials.personalNumber, credentials.password);
       Storage().storeCredentails(credentials);
-      DateTime? eventDate = Storage().getEventDate();
-      if (eventDate == null) {
-        DateTime? eventDateFromPb = await getEventDate();
-        if (eventDateFromPb != null) {
-          Storage().storeEventDate(eventDateFromPb);
-        }
+      DateTime? eventDateFromPb = await getEventDate();
+      if (eventDateFromPb != null) {
+        Storage().storeEventDate(eventDateFromPb);
       }
     } catch (e) {
       rethrow;

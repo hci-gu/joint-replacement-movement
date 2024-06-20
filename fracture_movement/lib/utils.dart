@@ -1,4 +1,5 @@
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
+import 'package:flutter/material.dart';
 
 bool isSameDay(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -17,4 +18,8 @@ bool isSameWeek(DateTime a, DateTime b) {
   DateTime startOfWeek2 = startOfWeek(b);
 
   return startOfWeek1 == startOfWeek2;
+}
+
+bool isDarkMode(context) {
+  return MediaQuery.of(context).platformBrightness == Brightness.dark;
 }
