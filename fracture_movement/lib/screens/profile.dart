@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/state/state.dart';
+import 'package:fracture_movement/widgets/version_number.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/password_input.dart';
@@ -199,7 +200,7 @@ class ProfileScreen extends ConsumerWidget {
               },
             ),
             const SizedBox(height: 16),
-            _versionNumber(),
+            const VersionNumber(),
           ],
         ),
       ),
@@ -253,40 +254,6 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ],
         );
-      },
-    );
-  }
-
-  _versionNumber() {
-    return FutureBuilder<PackageInfo>(
-      future: PackageInfo.fromPlatform(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.info_outline),
-              const SizedBox(width: 8),
-              Text(
-                snapshot.data?.appName ?? '',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${snapshot.data?.version} (${snapshot.data?.buildNumber})',
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: CupertinoColors.systemGrey,
-                ),
-              ),
-            ],
-          );
-        }
-        return const SizedBox();
       },
     );
   }

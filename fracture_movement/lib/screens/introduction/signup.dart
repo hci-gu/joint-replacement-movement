@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/state/state.dart';
+import 'package:fracture_movement/widgets/error_message.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/password_input.dart';
 import 'package:movement_code/components/personal_number_input.dart';
+import 'package:personnummer/personnummer.dart';
 
 class ConsentModal extends HookWidget {
   const ConsentModal({super.key});
@@ -63,6 +65,8 @@ class SignupScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ValueNotifier<bool> isLoading = useState(false);
+    ValueNotifier<bool> allValid = useState(false);
+    ValueNotifier<String?> errorMessage = useState(null);
     final personalIdController = useTextEditingController(
       text: '',
     );
@@ -72,6 +76,37 @@ class SignupScreen extends HookConsumerWidget {
     final confirmPasswordController = useTextEditingController(
       text: '',
     );
+
+    useEffect(() {
+      void listener() {
+        allValid.value = Personnummer.valid(personalIdController.text) &&
+            passwordController.text.length >= 5 &&
+            passwordController.text == confirmPasswordController.text;
+
+        if (passwordController.text.length >= 5 &&
+            confirmPasswordController.text.length >= 5) {
+          if (passwordController.text != confirmPasswordController.text) {
+            errorMessage.value = 'Lösenorden matchar inte';
+          } else {
+            errorMessage.value = null;
+          }
+        }
+      }
+
+      personalIdController.addListener(listener);
+      passwordController.addListener(listener);
+      confirmPasswordController.addListener(listener);
+
+      return () {
+        personalIdController.removeListener(listener);
+        passwordController.removeListener(listener);
+        confirmPasswordController.removeListener(listener);
+      };
+    }, [
+      personalIdController,
+      passwordController,
+      confirmPasswordController,
+    ]);
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
@@ -114,9 +149,19 @@ class SignupScreen extends HookConsumerWidget {
                 controller: confirmPasswordController,
                 placeholder: 'Upprepa lösenord',
               ),
+              if (errorMessage.value != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  errorMessage.value!,
+                  style: const TextStyle(
+                    color: CupertinoColors.systemRed,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               CupertinoButton.filled(
-                onPressed: isLoading.value
+                onPressed: isLoading.value || !allValid.value
                     ? null
                     : () async {
                         bool? consented = await _showAlertDialog(context);
@@ -124,14 +169,32 @@ class SignupScreen extends HookConsumerWidget {
                           return;
                         }
 
+                        isLoading.value = true;
                         try {
-                          await ref.read(authProvider.notifier).signup(
-                                Credentials(
-                                  personalIdController.text,
-                                  passwordController.text,
+                          await Future.wait([
+                            ref.read(authProvider.notifier).signup(
+                                  Credentials(
+                                    personalIdController.text,
+                                    passwordController.text,
+                                  ),
                                 ),
-                              );
-                        } catch (_) {}
+                            Future.delayed(const Duration(seconds: 1))
+                          ]);
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (context) => ErrorMessage(
+                              e: e,
+                              title: 'Fel vid inloggning',
+                              description:
+                                  'Kunde inte logga in, kontrollera att personnummer och lösenord är korrekt',
+                            ),
+                          );
+                        }
+                        if (context.mounted) {
+                          isLoading.value = false;
+                        }
                       },
                 child: isLoading.value
                     ? const CupertinoActivityIndicator()

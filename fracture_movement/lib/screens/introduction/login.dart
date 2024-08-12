@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/state/state.dart';
+import 'package:fracture_movement/widgets/error_message.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/components/personal_number_input.dart';
 import 'package:movement_code/components/password_input.dart';
@@ -58,13 +59,31 @@ class LoginScreen extends HookConsumerWidget {
                     ? null
                     : () async {
                         try {
-                          await ref.read(authProvider.notifier).login(
-                                Credentials(
-                                  personalIdController.text,
-                                  passwordController.text,
+                          isLoading.value = true;
+                          await Future.wait([
+                            ref.read(authProvider.notifier).login(
+                                  Credentials(
+                                    personalIdController.text,
+                                    passwordController.text,
+                                  ),
                                 ),
-                              );
-                        } catch (e) {}
+                            Future.delayed(const Duration(seconds: 1))
+                          ]);
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (context) => ErrorMessage(
+                              e: e,
+                              title: 'Fel vid inloggning',
+                              description:
+                                  'Kunde inte logga in, kontrollera att personnummer och lösenord är korrekt',
+                            ),
+                          );
+                        }
+                        if (context.mounted) {
+                          isLoading.value = false;
+                        }
                       },
                 child: isLoading.value
                     ? const CupertinoActivityIndicator()

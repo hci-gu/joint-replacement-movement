@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fracture_movement/utils.dart';
 import 'package:intl/intl.dart';
 
 enum Medication {
@@ -185,7 +186,7 @@ class DailyQuestionnaireChart extends HookWidget {
                             ),
                           ),
                         ),
-                        barGroups: barsForMedication,
+                        barGroups: barsForMedication(context),
                       ),
                     ),
                   ),
@@ -355,7 +356,7 @@ class DailyQuestionnaireChart extends HookWidget {
     );
   }
 
-  List<BarChartGroupData> get barsForMedication {
+  List<BarChartGroupData> barsForMedication(BuildContext context) {
     return data.map((e) {
       List<Medication> medications =
           e.medication != null ? e.medication!.keys.toList() : [];
@@ -391,10 +392,15 @@ class DailyQuestionnaireChart extends HookWidget {
                       currentY,
                       currentY + value,
                       entry.color,
-                      const BorderSide(
-                        color: CupertinoColors.white,
-                        width: 2.5,
-                      ),
+                      isDarkMode(context)
+                          ? const BorderSide(
+                              color: CupertinoColors.black,
+                              width: 2.5,
+                            )
+                          : const BorderSide(
+                              color: CupertinoColors.white,
+                              width: 2.5,
+                            ),
                     );
                     currentY += value;
                     // currentY += 0.5;

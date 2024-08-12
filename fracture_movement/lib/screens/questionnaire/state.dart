@@ -40,6 +40,8 @@ class Questionnaire {
       }
       pages.add('question');
     }
+    pages.add('submit');
+
     return pages;
   }
 
@@ -50,7 +52,8 @@ class Questionnaire {
         intros++;
       }
     }
-    return availableQuestions[max(0, pageIndex - intros)];
+    return availableQuestions[
+        min(max(0, pageIndex - intros), availableQuestions.length - 1)];
   }
 
   String get lastIntroduction {
@@ -64,6 +67,7 @@ class Questionnaire {
   }
 
   bool get currentIsIntro => pageTypes[pageIndex] == 'intro';
+  bool get currentIsSubmit => pageTypes[pageIndex] == 'submit';
 
   double get progressValue =>
       availableQuestions.indexOf(current) / (availableQuestions.length - 1);
@@ -78,17 +82,6 @@ class Questionnaire {
             (answers[question.dependsOn!.question] ==
                 question.dependsOn!.answer))
         .toList();
-  }
-
-  bool get canSubmit {
-    return availableQuestions.every((question) {
-      if (question.dependsOn != null) {
-        return answers[question.dependsOn!.question] ==
-            question.dependsOn!.answer;
-      }
-
-      return answers[question.id] != null;
-    });
   }
 
   bool get answered {
@@ -176,7 +169,7 @@ class QuestionnaireNotifier
     state = nextState;
   }
 
-  Future<bool> answer(String question, dynamic answer) async {
+  Future answer(String question, dynamic answer) async {
     state = await AsyncValue.guard(() async {
       Map<String, dynamic> answers = {
         ...state.value!.answers,
@@ -184,7 +177,6 @@ class QuestionnaireNotifier
       answers[question] = answer;
       return state.value!.copyWith(answers: answers);
     });
-    return !state.value!.canSubmit;
   }
 
   Future submit([DateTime? date]) async {

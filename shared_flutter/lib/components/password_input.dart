@@ -17,12 +17,50 @@ class PasswordInput extends HookWidget {
     final focusNode = useFocusNode();
     ValueNotifier<String?> errorMessage = useState(null);
 
-    return CupertinoTextField(
-      controller: controller,
-      placeholder: placeholder,
-      obscureText: true,
-      prefix: InputPrefix(text: placeholder, error: errorMessage.value),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+    useEffect(() {
+      void listener() {
+        if (controller.text.length >= 5) {
+          errorMessage.value = null;
+        }
+      }
+
+      controller.addListener(listener);
+      return () => controller.removeListener(listener);
+    }, [controller]);
+
+    focusNode.addListener(() {
+      if (!focusNode.hasFocus) {
+        if (controller.text.length < 5) {
+          errorMessage.value =
+              'Ditt lösenord behöver vara minst 5 tecken långt.';
+        } else {
+          errorMessage.value = null;
+        }
+      }
+    });
+
+    return Column(
+      children: [
+        CupertinoTextField(
+          focusNode: focusNode,
+          controller: controller,
+          placeholder: placeholder,
+          obscureText: true,
+          prefix: InputPrefix(text: placeholder),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+        ),
+        if (errorMessage.value != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              errorMessage.value!,
+              style: const TextStyle(
+                color: CupertinoColors.systemRed,
+                fontSize: 16,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

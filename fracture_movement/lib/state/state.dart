@@ -34,14 +34,16 @@ class Auth extends StateNotifier<RecordAuth?> {
 
   Future login(Credentials credentials) async {
     try {
-      state = await pb
+      var loginState = await pb
           .collection('users')
           .authWithPassword(credentials.personalNumber, credentials.password);
       Storage().storeCredentails(credentials);
       DateTime? eventDateFromPb = await getEventDate();
       if (eventDateFromPb != null) {
-        Storage().storeEventDate(eventDateFromPb);
+        await Storage().storeEventDate(eventDateFromPb);
+        await Future.delayed(const Duration(milliseconds: 500));
       }
+      state = loginState;
     } catch (e) {
       rethrow;
     }
@@ -126,7 +128,7 @@ class Auth extends StateNotifier<RecordAuth?> {
 
   Future deleteAccount() async {
     try {
-      await pb.collection('users').delete(state!.record!.id);
+      pb.collection('users').delete(state!.record!.id);
       state = null;
       Storage().clearCredentials();
     } catch (e) {

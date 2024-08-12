@@ -296,9 +296,9 @@ class WeeklyQuestionnaireList extends ConsumerWidget {
       ),
       child: ListView.builder(
         shrinkWrap: true,
-        itemCount: weeks + 1,
+        itemCount: weeks,
         itemBuilder: (context, index) {
-          int weekIndex = index - 1;
+          int weekIndex = index;
 
           DateTime week = DateTime(
             now.year,
@@ -421,14 +421,6 @@ class OtherHistoryScreen extends ConsumerWidget {
                   Column(
                     children: [
                       CupertinoListTile(
-                        onTap: () {
-                          context.goNamed(
-                            'questionnaire-history',
-                            pathParameters: {
-                              'id': item.questionnaire.id,
-                            },
-                          );
-                        },
                         padding: const EdgeInsets.symmetric(
                           vertical: 8,
                           horizontal: 16,

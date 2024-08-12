@@ -3,6 +3,7 @@ import { atomFamily, atomWithDefault } from 'jotai/utils'
 import deepEqual from 'fast-deep-equal'
 import PocketBase from 'pocketbase'
 
+console.log(import.meta.env.VITE_API_URL)
 const pb = new PocketBase(import.meta.env.VITE_API_URL)
 
 pb.admins.authWithPassword(
@@ -19,10 +20,50 @@ export const dataTypes = [
   'walking_step_length',
 ]
 
+const answersObjectForAnswers = (answers, questionnaires) => {
+  const dailyQuestionnaire = questionnaires.find((q) => q.occurance === 'daily')
+  const weeklyQuestionnaire = questionnaires.find(
+    (q) => q.occurance === 'weekly'
+  )
+  const dailyAnswers = answers.filter(
+    (a) => a.questionnaire === dailyQuestionnaire.id
+  )
+  dailyAnswers.sort((a, b) => a.date.localeCompare(b.date))
+
+  const weeklyAnswers = answers.filter(
+    (a) => a.questionnaire === weeklyQuestionnaire.id
+  )
+  weeklyAnswers.sort((a, b) => a.date.localeCompare(b.date))
+
+  const firstDailyAnswer = dailyAnswers[0]
+
+  const firstDate = new Date(firstDailyAnswer.date)
+  const today = new Date()
+  const days = Math.round((today - firstDate) / (1000 * 3600 * 24))
+  const weeks = Math.round(days / 7)
+
+  const answersObject = {
+    started: firstDate,
+    days,
+    weeks,
+    daily: dailyAnswers,
+    weekly: weeklyAnswers,
+  }
+  return answersObject
+}
+
 export const usersAtom = atomWithDefault(async (get, { signal }) => {
+  const questionnaires = await pb
+    .collection('questionnaires')
+    .getFullList({ signal })
   const users = await pb.collection('users').getFullList({ signal })
 
   for (const user of users) {
+    const answers = await pb
+      .collection('answers')
+      .getFullList({ signal, filter: `user = "${user.id}"` })
+    user.answers = answersObjectForAnswers(answers, questionnaires)
+
     for (const dataType of dataTypes) {
       const first = await pb.collection(dataType).getList(0, 1, {
         filter: `user = "${user.id}"`,
@@ -69,7 +110,39 @@ const formatDate = (date, interval) => {
   }
 }
 
-const groupDataByInterval = (data, interval) => {
+const groupDataByInterval = (data, interval, dateRange) => {
+  if (!data.length) return []
+
+  const minDate = dateRange ? dateRange[0] : new Date(data[0].date)
+  const maxDate = dateRange
+    ? dateRange[1]
+    : new Date(data[data.length - 1].date)
+  const days = Math.round(
+    (maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24)
+  )
+
+  const daysData = {}
+  for (let i = 0; i < days; i++) {
+    const date = new Date(minDate.getTime())
+    date.setDate(date.getDate() + i)
+    daysData[formatDate(date, 'day')] = 0
+  }
+
+  data.forEach((item) => {
+    const dateKey = formatDate(item.date, 'day')
+    if (!daysData[dateKey]) daysData[dateKey] = 0
+    daysData[dateKey] += item.value
+  })
+  if (interval === 'day') {
+    return Object.keys(daysData).map((key) => {
+      return {
+        date: key,
+        value: daysData[key] == 0 ? null : daysData[key],
+        sort: new Date(key).valueOf(),
+      }
+    })
+  }
+
   const groupedData = {}
 
   // Group data by interval
@@ -89,9 +162,11 @@ const groupDataByInterval = (data, interval) => {
   })
 }
 
-const groupStepsByInterval = (data, interval) => {
-  const minDate = new Date(data[0].date)
-  const maxDate = new Date(data[data.length - 1].date)
+const groupStepsByInterval = (data, interval, dateRange) => {
+  const minDate = dateRange ? dateRange[0] : new Date(data[0].date)
+  const maxDate = dateRange
+    ? dateRange[1]
+    : new Date(data[data.length - 1].date)
 
   const days = Math.round(
     (maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24)
@@ -168,7 +243,11 @@ export const stepsAtom = atomFamily(
           ? mappedData.filter((d) => d.date >= from && d.date <= to)
           : mappedData
 
-      const grouped = groupStepsByInterval(filteredData, groupBy)
+      const grouped = groupStepsByInterval(
+        filteredData,
+        groupBy,
+        from && to ? [from, to] : null
+      )
 
       return grouped.sort((a, b) => a.sort - b.sort)
     }),
@@ -194,7 +273,11 @@ export const formattedDataAtom = atomFamily(
           ? mappedData.filter((d) => d.date >= from && d.date <= to)
           : mappedData
 
-      const grouped = groupDataByInterval(filteredData, groupBy)
+      const grouped = groupDataByInterval(
+        filteredData,
+        groupBy,
+        from && to ? [from, to] : null
+      )
 
       return grouped.sort((a, b) => a.sort - b.sort)
     }),

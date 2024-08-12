@@ -1,5 +1,3 @@
-import 'package:fracture_movement/pocketbase.dart';
-import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/state.dart';
@@ -122,7 +120,8 @@ final chartDataProvider = FutureProvider<ChartData>((ref) async {
   Map<DateTime, List<DataPoint>> dayMap = {};
 
   for (DataPoint point in data) {
-    DateTime date = DateTime(point.date.year, point.date.month, point.date.day);
+    DateTime date =
+        DateTime(point.date.year, point.date.month, point.date.day, 12);
     if (dayMap[date] == null) {
       dayMap[date] = [];
     }

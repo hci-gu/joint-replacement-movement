@@ -62,6 +62,14 @@ const Chart = ({ type, id }) => {
     })
   )
 
+  if (data.length === 0) {
+    return (
+      <Center h={24} pt={24}>
+        <Text>No data available</Text>
+      </Center>
+    )
+  }
+
   return (
     <ResponsiveContainer height={200} style={{ marginTop: 16 }}>
       <LineChart width={'100%'} height={'100%'} data={data}>

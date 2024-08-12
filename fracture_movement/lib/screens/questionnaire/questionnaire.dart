@@ -44,6 +44,22 @@ class QuestionsIntroduction extends StatelessWidget {
   }
 }
 
+class QuestionnaireSubmit extends StatelessWidget {
+  final void Function() onSubmit;
+
+  const QuestionnaireSubmit({super.key, required this.onSubmit});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: CupertinoButton.filled(
+        onPressed: onSubmit,
+        child: const Text('Skicka in'),
+      ),
+    );
+  }
+}
+
 class SmallQuestionsIntroduction extends StatelessWidget {
   final String text;
 
@@ -112,6 +128,8 @@ class QuestionnaireWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ValueNotifier<bool> showIntroduction =
+        useState(questionnaire.description.isNotEmpty);
     ValueNotifier<String?> errorMessage = useState(null);
     final controller = usePageController();
     List<Widget> questionWidgets = [];
@@ -133,8 +151,8 @@ class QuestionnaireWidget extends HookConsumerWidget {
       questionWidgets.add(QuestionWidget(
         question: question,
         onAnswer: (value, [bool proceed = true]) async {
-          bool canProceed = await onAnswer(question.id, value);
-          if (proceed && canProceed) {
+          await onAnswer(question.id, value);
+          if (proceed) {
             await Future.delayed(answerDelay);
             controller.nextPage(
               duration: animationDuration,
@@ -148,6 +166,16 @@ class QuestionnaireWidget extends HookConsumerWidget {
             ? questionnaire.answers[question.valueFromQuestion]
             : null,
       ));
+    }
+    questionWidgets.add(QuestionnaireSubmit(
+      onSubmit: () {
+        ref.read(questionnaireProvider(questionnaire.id).notifier).submit(date);
+        context.pop();
+      },
+    ));
+
+    if (showIntroduction.value) {
+      return _introduction(context, showIntroduction);
     }
 
     return CupertinoPageScaffold(
@@ -219,31 +247,16 @@ class QuestionnaireWidget extends HookConsumerWidget {
                                     const SizedBox(width: 16),
                                     CupertinoButton.filled(
                                       padding: const EdgeInsets.all(12),
-                                      onPressed: questionnaire.isLast &&
-                                              !questionnaire.canSubmit
+                                      onPressed: questionnaire.currentIsSubmit
                                           ? null
                                           : () async {
-                                              if (questionnaire.isLast) {
-                                                await ref
-                                                    .read(questionnaireProvider(
-                                                            questionnaire.id)
-                                                        .notifier)
-                                                    .submit(date);
-                                                if (context.mounted) {
-                                                  context.pop();
-                                                }
-                                                return;
-                                              }
-
                                               controller.nextPage(
                                                 duration: animationDuration,
                                                 curve: animationCurve,
                                               );
                                             },
-                                      child: questionnaire.isLast
-                                          ? const Text('Skicka in')
-                                          : const Icon(
-                                              Icons.keyboard_arrow_down),
+                                      child:
+                                          const Icon(Icons.keyboard_arrow_down),
                                     ),
                                   ],
                                 ),
@@ -254,6 +267,38 @@ class QuestionnaireWidget extends HookConsumerWidget {
                       ),
                   ],
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _introduction(
+      BuildContext context, ValueNotifier<bool> showIntroduction) {
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        leading: CupertinoNavigationBarBackButton(
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        middle: Text(questionnaire.name),
+        trailing: Text(questionnaire.progress),
+      ),
+      backgroundColor: CupertinoColors.systemGroupedBackground,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HtmlWidget(questionnaire.description),
+              const SizedBox(height: 16),
+              CupertinoButton.filled(
+                onPressed: () {
+                  showIntroduction.value = false;
+                },
+                child: const Text('Ok'),
               ),
             ],
           ),

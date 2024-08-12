@@ -1,6 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:fracture_movement/widgets/version_number.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class IntroductionScreen extends ConsumerWidget {
   const IntroductionScreen({super.key});
@@ -14,6 +18,7 @@ class IntroductionScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const Spacer(),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
@@ -51,6 +56,8 @@ class IntroductionScreen extends ConsumerWidget {
                 child: const Text('Logga in'),
                 onPressed: () => context.goNamed('login'),
               ),
+              const Spacer(),
+              const VersionNumber(),
             ],
           ),
         ),

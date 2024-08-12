@@ -5,7 +5,6 @@ import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/screens/step_data/step_data.dart';
 import 'package:fracture_movement/state/state.dart';
-import 'package:fracture_movement/utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -104,7 +103,7 @@ class Home extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(
-                  child: CircularProgressIndicator(),
+                  child: CupertinoActivityIndicator(),
                 ),
               ),
         ),
@@ -294,6 +293,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       tabBuilder: (context, index) {
+        // return const StepDataScreen();
         switch (index) {
           case 0:
             return const Home();

@@ -33,6 +33,28 @@ const _formatTitle = (title) => {
     .join(' ')
 }
 
+const AnswersRow = ({ answers }) => {
+  if (!answers) {
+    return null
+  }
+  return (
+    <Flex direction="column">
+      <Text fz={14}>
+        <strong>Started:</strong>{' '}
+        {answers.started.toLocaleString().substring(0, 10)}
+      </Text>
+      <Flex gap="sm">
+        <Text fz={14}>
+          <strong>Daily:</strong> {answers.daily.length} / {answers.days}
+        </Text>
+        <Text fz={14}>
+          <strong>Weekly:</strong> {answers.weekly.length} / {answers.weeks}
+        </Text>
+      </Flex>
+    </Flex>
+  )
+}
+
 const Users = () => {
   const users = useAtomValue(usersAtom)
 
@@ -56,6 +78,7 @@ const Users = () => {
               >
                 {u.username}
               </Anchor>
+              <AnswersRow answers={u.answers} />
             </Card.Section>
             {dataTypes.map((k) => (
               <Flex align="baseline" justify="space-between">

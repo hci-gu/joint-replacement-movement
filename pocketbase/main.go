@@ -63,7 +63,7 @@ type DataItem struct {
 //	}
 
 func getNotificationToken() *token.Token {
-	authKey, err := token.AuthKeyFromFile("./cert/key.p8")
+	authKey, err := token.AuthKeyFromFile("/pb/cert/key.p8")
 
 	if err != nil {
 		log.Fatal("Cert Error:", err)
@@ -78,7 +78,7 @@ func getNotificationToken() *token.Token {
 }
 
 func sendNotification(token *token.Token, notification *apns2.Notification) {
-	client := apns2.NewTokenClient(token).Development()
+	client := apns2.NewTokenClient(token).Production()
 	res, err := client.Push(notification)
 
 	if err != nil {
