@@ -180,53 +180,54 @@ class QuestionnaireNotifier
   }
 
   Future submit([DateTime? date]) async {
-    if (state.value != null) {
-      await submitQuestionnaire(
-        state.value!,
-        ref.read(authProvider)!.record!.id,
-        startDate,
-        date ?? DateTime.now(),
-      );
-      if (state.value!.id == 'o0kztzavvw04a8c') {
-        DateTime? eventDate;
-        for (var value in state.value!.answersToSubmit.values) {
-          // type of value is string
-          if (value is String && DateTime.tryParse(value) != null) {
-            eventDate = DateTime.parse(value);
-          }
-        }
+    if (state.value == null) return;
 
-        if (eventDate != null) {
-          await Storage().storeEventDate(eventDate);
-          ref.invalidate(eventDateProvider);
+    await submitQuestionnaire(
+      state.value!,
+      ref.read(authProvider)!.record!.id,
+      startDate,
+      date ?? DateTime.now(),
+    );
+
+    if (state.value!.containsStepDataAccess) {
+      // find answer of type date in answers
+      DateTime date = state.value!.answers.values
+          .firstWhere((element) => element is DateTime) as DateTime;
+
+      String? personalId = Storage().getCredentials()?.personalNumber;
+      if (personalId != null) {
+        await uploadLatestHealthData(
+            personalId,
+            DateTime(
+              date.year - 1,
+              date.month,
+              date.day,
+            ));
+      }
+    } else {
+      DateTime? lastSync = await getLastStepData();
+      String? personalId = Storage().getCredentials()?.personalNumber;
+      if (lastSync != null && personalId != null) {
+        uploadLatestHealthData(personalId, lastSync);
+      }
+    }
+
+    if (state.value!.id == 'o0kztzavvw04a8c') {
+      DateTime? eventDate;
+      for (var value in state.value!.answersToSubmit.values) {
+        // type of value is string
+        if (value is String && DateTime.tryParse(value) != null) {
+          eventDate = DateTime.parse(value);
         }
       }
 
-      if (state.value!.containsStepDataAccess) {
-        // find answer of type date in answers
-        DateTime date = state.value!.answers.values
-            .firstWhere((element) => element is DateTime) as DateTime;
-
-        String? personalId = Storage().getCredentials()?.personalNumber;
-        if (personalId != null) {
-          ref
-              .read(healthDataProvider(DateTime(
-                date.year - 1,
-                date.month,
-                date.day,
-              )).notifier)
-              .uploadData(personalId);
-        }
+      if (eventDate != null) {
+        await Storage().storeEventDate(eventDate);
+        ref.invalidate(eventDateProvider);
       }
-      ref.invalidate(questionnaireAnswersProvider(state.value!.id));
-      ref.invalidate(answersProvider);
     }
-
-    DateTime? lastSync = await getLastStepData();
-    String? personalId = Storage().getCredentials()?.personalNumber;
-    if (lastSync != null && personalId != null) {
-      uploadLatestHealthData(personalId, lastSync);
-    }
+    ref.invalidate(questionnaireAnswersProvider(state.value!.id));
+    ref.invalidate(answersProvider);
   }
 }
 
@@ -321,3 +322,22 @@ final questionnaireProvider = AutoDisposeAsyncNotifierProviderFamily<
     QuestionnaireNotifier, Questionnaire, String>(QuestionnaireNotifier.new);
 
 final answersProvider = FutureProvider<List<Answer>>((ref) => getAnswers());
+
+enum AppChoice { puff, history }
+
+final appChoiceProvider = StateProvider<AppChoice?>((ref) {
+  ref.listenSelf((previous, next) {
+    print("appChoiceProvider.next: $next");
+    Storage().storeAppChoice(next.toString().split('.').last);
+  });
+
+  String? choice = Storage().getAppChoice();
+  print("appChoiceProvider: $choice");
+
+  if (choice == 'puff') {
+    return AppChoice.puff;
+  } else if (choice == 'history') {
+    return AppChoice.history;
+  }
+  return null;
+});

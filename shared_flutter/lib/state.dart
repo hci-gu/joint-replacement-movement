@@ -95,12 +95,14 @@ class HealthDataManager
     }
     healthDataMap.removeWhere((key, value) => value.isEmpty);
 
-    return HealthData(
+    var data = HealthData(
       healthDataMap,
       isAuthorized: isAuthorized,
       authorizationFailed: authorizationFailed,
       triedToAuthorize: triedToAuthorize,
     );
+
+    return data;
   }
 
   Future authorize() async {

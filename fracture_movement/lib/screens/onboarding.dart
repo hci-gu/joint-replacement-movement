@@ -1,14 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/state/state.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+const PUFF_ONBOARDING_FORM = 'o0kztzavvw04a8c';
+const HISTORY_ONBOARDING_FORM = 'we8v4s0ja3b0w2o';
 
 class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    AppChoice? appChoice = ref.watch(appChoiceProvider);
+
     return CupertinoPageScaffold(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
@@ -52,7 +58,11 @@ class OnboardingScreen extends ConsumerWidget {
               onPressed: () {
                 context.goNamed(
                   'onboarding-questionnaire',
-                  pathParameters: {'id': 'o0kztzavvw04a8c'},
+                  pathParameters: {
+                    'id': appChoice == AppChoice.history
+                        ? HISTORY_ONBOARDING_FORM
+                        : PUFF_ONBOARDING_FORM
+                  },
                 );
               },
               child: const Text('Sätt igång'),

@@ -5,8 +5,10 @@ import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
 import 'package:fracture_movement/screens/questionnaire/widgets/question.dart';
+import 'package:fracture_movement/utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:movement_code/state.dart';
 import 'package:movement_code/utils/single_direction_scroll.dart';
 
 const animationCurve = Curves.easeInOut;
@@ -67,10 +69,14 @@ class SmallQuestionsIntroduction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Color background = isDarkMode(context)
+        ? CupertinoColors.black
+        : CupertinoColors.systemGroupedBackground;
+
     return Column(
       children: [
         Container(
-          color: CupertinoColors.systemGroupedBackground,
+          color: background,
           padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
           child: HtmlWidget(
             text,
@@ -83,8 +89,8 @@ class SmallQuestionsIntroduction extends StatelessWidget {
         ),
         BackgroundWithOpacityGradient(
           colors: [
-            CupertinoColors.systemGroupedBackground,
-            CupertinoColors.systemGroupedBackground.withOpacity(0),
+            background,
+            background.withOpacity(0),
           ],
         ),
       ],
@@ -167,10 +173,15 @@ class QuestionnaireWidget extends HookConsumerWidget {
             : null,
       ));
     }
+
     questionWidgets.add(QuestionnaireSubmit(
-      onSubmit: () {
-        ref.read(questionnaireProvider(questionnaire.id).notifier).submit(date);
-        context.pop();
+      onSubmit: ([stepdata]) async {
+        await ref
+            .read(questionnaireProvider(questionnaire.id).notifier)
+            .submit(date);
+        if (context.mounted) {
+          context.pop();
+        }
       },
     ));
 
@@ -192,6 +203,8 @@ class QuestionnaireWidget extends HookConsumerWidget {
           child: Column(
             children: [
               LinearProgressIndicator(
+                backgroundColor:
+                    isDarkMode(context) ? CupertinoColors.black : null,
                 value: questionnaire.progressValue,
                 color: CupertinoColors.activeBlue,
               ),
@@ -213,64 +226,69 @@ class QuestionnaireWidget extends HookConsumerWidget {
                     ),
                     if (questionnaire.pageIndex > 0 ||
                         !questionnaire.currentIsIntro)
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Column(
-                          children: [
-                            BackgroundWithOpacityGradient(
-                              colors: [
-                                CupertinoColors.systemGroupedBackground
-                                    .withOpacity(0),
-                                CupertinoColors.systemGroupedBackground,
-                              ],
-                            ),
-                            Container(
-                              color: CupertinoColors.systemGroupedBackground,
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: Center(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    CupertinoButton.filled(
-                                      padding: const EdgeInsets.all(12),
-                                      onPressed: questionnaire.pageIndex > 0
-                                          ? () => controller.previousPage(
-                                                duration: animationDuration,
-                                                curve: animationCurve,
-                                              )
-                                          : null,
-                                      child:
-                                          const Icon(Icons.keyboard_arrow_up),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    CupertinoButton.filled(
-                                      padding: const EdgeInsets.all(12),
-                                      onPressed: questionnaire.currentIsSubmit
-                                          ? null
-                                          : () async {
-                                              controller.nextPage(
-                                                duration: animationDuration,
-                                                curve: animationCurve,
-                                              );
-                                            },
-                                      child:
-                                          const Icon(Icons.keyboard_arrow_down),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      _bottomNavigation(context, controller),
                   ],
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _bottomNavigation(BuildContext context, PageController controller) {
+    Color background = isDarkMode(context)
+        ? CupertinoColors.black
+        : CupertinoColors.systemGroupedBackground;
+
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Column(
+        children: [
+          BackgroundWithOpacityGradient(
+            colors: [
+              background.withOpacity(0),
+              background,
+            ],
+          ),
+          Container(
+            color: background,
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CupertinoButton.filled(
+                    padding: const EdgeInsets.all(12),
+                    onPressed: questionnaire.pageIndex > 0
+                        ? () => controller.previousPage(
+                              duration: animationDuration,
+                              curve: animationCurve,
+                            )
+                        : null,
+                    child: const Icon(Icons.keyboard_arrow_up),
+                  ),
+                  const SizedBox(width: 16),
+                  CupertinoButton.filled(
+                    padding: const EdgeInsets.all(12),
+                    onPressed: questionnaire.currentIsSubmit
+                        ? null
+                        : () async {
+                            controller.nextPage(
+                              duration: animationDuration,
+                              curve: animationCurve,
+                            );
+                          },
+                    child: const Icon(Icons.keyboard_arrow_down),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

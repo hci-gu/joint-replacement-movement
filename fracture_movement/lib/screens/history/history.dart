@@ -162,7 +162,7 @@ class DailyQuestionnaireList extends ConsumerWidget {
       return 'Igår';
     }
 
-    return DateFormat.MEd().format(date);
+    return DateFormat.MEd('sv').format(date);
   }
 
   Widget _painLevel(BuildContext context, Answer answer) {
@@ -340,7 +340,7 @@ class WeeklyQuestionnaireList extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    DateFormat.MMMMEEEEd().format(week),
+                    DateFormat.MMMMEEEEd('sv').format(week),
                     style: const TextStyle(
                       color: CupertinoColors.systemGrey,
                       fontSize: 14,
@@ -434,7 +434,7 @@ class OtherHistoryScreen extends ConsumerWidget {
                         ),
                         subtitle: item.answers.isNotEmpty
                             ? Text(
-                                DateFormat.MMMMEEEEd()
+                                DateFormat.MMMMEEEEd('sv')
                                     .format(item.answers.first.date),
                                 style: const TextStyle(
                                   color: CupertinoColors.systemGrey,

@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fracture_movement/router.dart';
 import 'package:fracture_movement/state/state.dart';
@@ -9,14 +8,17 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:movement_code/api.dart';
 import 'package:push/push.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initializeDateFormatting();
   timeago.setLocaleMessages('sv', timeago.SvMessages());
   await Storage().reloadPrefs();
   Credentials? credentials = Storage().getCredentials();
-  // Api().init('http://192.168.0.33:8090');
-  Api().init('https://fracture-puff-api.prod.appadem.in');
+  Api().init('http://192.168.0.33:8090');
+  // Api().init('https://fracture-puff-api.prod.appadem.in');
 
   runApp(
     ProviderScope(

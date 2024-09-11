@@ -1,13 +1,18 @@
 package main
 
 import (
+	"compress/gzip"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"path/filepath"
 
 	_ "app/migrations"
 
@@ -18,7 +23,6 @@ import (
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/pocketbase/pocketbase/tools/cron"
@@ -27,6 +31,10 @@ import (
 	"github.com/sideshow/apns2/payload"
 	"github.com/sideshow/apns2/token"
 )
+
+// const STORAGE_PATH = "./storage"
+const STORAGE_PATH = "/pb/pb_data/raw"
+const CERT_PATH = "/pb/cert"
 
 type Value struct {
 	NumericValue string `json:"numericValue"`
@@ -44,23 +52,87 @@ type DataItem struct {
 	SourceName   string `json:"source_name"`
 }
 
-// const (
-// 	StepsCollection                = "steps"
-// 	WalkingAsymmetryCollection     = "walking_asymmetry_percentage"
-// 	WalkingDoubleSupportCollection = "walking_double_support_percentage"
-// 	WalkingSpeedCollection         = "walking_speed"
-// 	WalkingSteadinessCollection    = "walking_steadiness"
-// 	WalkingStepLengthCollection    = "walking_step_length"
-// )
+// Function to parse date strings and return the earliest and latest dates
+func getEarliestAndLatestDates(data []DataItem) (earliest string, latest string, err error) {
+	if len(data) == 0 {
+		return "", "", fmt.Errorf("no data points provided")
+	}
 
-//	var collections = []string{
-//		StepsCollection,
-//		WalkingAsymmetryCollection,
-//		WalkingDoubleSupportCollection,
-//		WalkingSpeedCollection,
-//		WalkingSteadinessCollection,
-//		WalkingStepLengthCollection,
-//	}
+	// Initialize earliest and latest dates with the first item's dates
+	earliest = data[0].DateFrom
+	latest = data[0].DateTo
+
+	// Iterate through the data to find the actual earliest and latest dates
+	for _, item := range data {
+		if strings.Compare(item.DateFrom, earliest) < 0 {
+			earliest = item.DateFrom
+		}
+		if strings.Compare(item.DateTo, latest) > 0 {
+			latest = item.DateTo
+		}
+	}
+
+	return earliest, latest, nil
+}
+
+// Write compressed data to a file
+func writeCompressedFile(filePath string, data []DataItem) error {
+	// Convert the []DataItem array to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// Create the file for writing compressed data
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Create a gzip writer
+	gzipWriter := gzip.NewWriter(file)
+	defer gzipWriter.Close()
+
+	// Write compressed data
+	_, err = gzipWriter.Write(jsonData)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Read and decompress the file
+func readCompressedFile(filePath string) ([]DataItem, error) {
+	// Open the compressed file
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// Create a gzip reader
+	gzipReader, err := gzip.NewReader(file)
+	if err != nil {
+		return nil, err
+	}
+	defer gzipReader.Close()
+
+	// Read and decompress the data
+	decompressedData, err := io.ReadAll(gzipReader)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the decompressed data into []DataItem
+	var dataItems []DataItem
+	if err := json.Unmarshal(decompressedData, &dataItems); err != nil {
+		return nil, err
+	}
+
+	return dataItems, nil
+}
 
 func getNotificationToken() *token.Token {
 	authKey, err := token.AuthKeyFromFile("/pb/cert/key.p8")
@@ -185,7 +257,6 @@ func main() {
 		})
 
 		e.Router.POST("/users", func(c echo.Context) error {
-
 			data := struct {
 				PersonalId string `json:"personalId"`
 				Consent    bool   `json:"consent"`
@@ -245,9 +316,9 @@ func main() {
 		})
 
 		e.Router.POST("/data", func(c echo.Context) error {
+			println("POST /data")
 			reqBody := struct {
 				PersonalId string     `json:"personalId"`
-				EventDate  string     `json:"eventDate"`
 				Data       []DataItem `json:"data"`
 			}{}
 
@@ -256,46 +327,101 @@ func main() {
 				return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 			}
 
-			// Logic to find or create a user based on PersonalId
-			user, _, err := findOrCreateUser(app, reqBody.PersonalId, reqBody.EventDate)
+			// Create a folder path for the user based on the PersonalId
+			userFolder := filepath.Join(STORAGE_PATH, reqBody.PersonalId)
+			err := os.MkdirAll(userFolder, os.ModePerm) // MkdirAll creates the directory if it doesn't exist
 			if err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, "Failed to handle user")
+				log.Println("Error: ", err)
+				return err
 			}
 
-			c.NoContent(http.StatusOK)
+			// Use the current timestamp for the file name
+			timestamp := time.Now()
+			fileName := fmt.Sprintf("%s.json.gz", timestamp.Format("2006-01-02_15:04:05.000"))
 
-			// Start processing the data in a goroutine
-			go func() {
-				// Group data by data_type
-				dataGroups := groupDataByType(reqBody.Data)
+			// Full file path within the user's folder
+			filePath := filepath.Join(userFolder, fileName)
+			err = writeCompressedFile(filePath, reqBody.Data)
+			if err != nil {
+				log.Println("Error: ", err)
+				return err
+			}
 
-				app.Dao().RunInTransaction(func(txDao *daos.Dao) error {
-					// Process each data group in batches
-					for dataType, items := range dataGroups {
-						if err := processInBatches(txDao, dataType, user, items, 5000); err != nil {
-							return echo.NewHTTPError(http.StatusInternalServerError, "Failed to save data")
-						}
-					}
-					return nil
-				})
-			}()
+			// Extract the earliest and latest dates from the data
+			datafrom, dataTo, err := getEarliestAndLatestDates(reqBody.Data)
+			if err != nil {
+				log.Println("Error: ", err)
+				return err
+			}
 
-			return nil
+			collection, err := app.Dao().FindCollectionByNameOrId("dataUploads")
+			if err != nil {
+				log.Println("Error: ", err)
+				return err
+			}
+
+			user, err := getUserForPersonalId(app, reqBody.PersonalId)
+			if err != nil {
+				log.Println("Error: ", err)
+				return err
+			}
+
+			record := models.NewRecord(collection)
+			record.Set("user", user.Id)
+			record.Set("filePath", filePath)
+			record.Set("timestamp", timestamp)
+			record.Set("dataFrom", datafrom)
+			record.Set("dataTo", dataTo)
+
+			if err := app.Dao().SaveRecord(record); err != nil {
+				log.Println("Error: ", err)
+				return err
+			}
+
+			// Return success with metadata
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"message":  "Data saved successfully",
+				"filePath": filePath,
+			})
 		})
 
-		// e.Router.GET("/notify", func(c echo.Context) error {
-		// 	user, _ := app.Dao().FindRecordById("users", "k2n4khxcjr6ncft")
-		// 	token := getNotificationToken()
-		// 	// we have answered so that we are done!
-		// 	notification := &apns2.Notification{}
-		// 	notification.DeviceToken = user.Get("device_token").(string)
-		// 	notification.Topic = "com.example.fractureMovement"
-		// 	payload := payload.NewPayload().Badge(0)
-		// 	notification.Payload = payload
+		e.Router.GET("/data/:personalId", func(c echo.Context) error {
+			// Extract the personalId from query parameters
+			personalId := c.PathParam("personalId")
 
-		// 	sendNotification(token, notification)
-		// 	return nil
-		// })
+			// Construct the directory path based on the personalId
+			userFolder := filepath.Join(STORAGE_PATH, personalId)
+
+			// Open the directory and list all files
+			files, err := os.ReadDir(userFolder)
+			if err != nil {
+				return err
+			}
+
+			// Slice to hold all concatenated data
+			var allData []DataItem
+
+			// Loop through each file in the directory
+			for _, file := range files {
+				// Ensure we're only processing .gz files
+				if filepath.Ext(file.Name()) == ".gz" {
+					// Construct the full file path
+					filePath := filepath.Join(userFolder, file.Name())
+
+					// Read and decompress the file (which contains an array of DataItem)
+					dataItems, err := readCompressedFile(filePath)
+					if err != nil {
+						return err
+					}
+
+					// Append the data items to the allData slice
+					allData = append(allData, dataItems...)
+				}
+			}
+
+			// Return the concatenated array of data items
+			return c.JSON(http.StatusOK, allData)
+		})
 
 		// cron job that triggers at 19:00 every day
 		scheduler.MustAdd("hello", "0 19 * * *", func() {
@@ -380,52 +506,4 @@ func findOrCreateUser(app *pocketbase.PocketBase, personalId, eventDate string) 
 	}
 
 	return record, password, nil
-}
-
-func groupDataByType(data []DataItem) map[string][]DataItem {
-	groups := make(map[string][]DataItem)
-	for _, item := range data {
-		groups[item.DataType] = append(groups[item.DataType], item)
-	}
-	return groups
-}
-
-func processInBatches(txDao *daos.Dao, table string, user *models.Record, data []DataItem, batchSize int) error {
-	for i := 0; i < len(data); i += batchSize {
-		end := i + batchSize
-		if end > len(data) {
-			end = len(data)
-		}
-		batch := data[i:end]
-		if err := batchInsert(txDao, table, user, batch); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func batchInsert(txDao *daos.Dao, table string, user *models.Record, data []DataItem) error {
-	collection, err := txDao.FindCollectionByNameOrId(table)
-	if err != nil {
-		return err
-	}
-
-	for _, item := range data {
-		record := models.NewRecord(collection)
-		// parse string value to float
-		value, _ := strconv.ParseFloat(item.Value.NumericValue, 64)
-
-		record.Set("user", user.Id)
-		record.Set("value", value)
-		record.Set("date_from", item.DateFrom)
-		record.Set("date_to", item.DateTo)
-		record.Set("device_id", item.DeviceId)
-		record.Set("source_id", item.SourceId)
-		record.Set("source_name", item.SourceName)
-		if err := txDao.SaveRecord(record); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

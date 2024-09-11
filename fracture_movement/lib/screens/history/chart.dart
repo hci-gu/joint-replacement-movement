@@ -131,6 +131,15 @@ class DailyQuestionnaireChart extends HookWidget {
       };
     }, [controller.hasClients]);
 
+    double medicationMaxY = 0.0;
+    for (var point in data) {
+      double maxY = point.medication?.entries
+              .map((entry) => entry.value.toDouble())
+              .reduce((value, element) => value + element) ??
+          0;
+      medicationMaxY = max(medicationMaxY, maxY);
+    }
+
     return SizedBox(
       height: 236,
       child: Scrollbar(
@@ -154,7 +163,7 @@ class DailyQuestionnaireChart extends HookWidget {
                     child: BarChart(
                       BarChartData(
                         alignment: BarChartAlignment.spaceBetween,
-                        maxY: 10,
+                        maxY: medicationMaxY,
                         minY: 0,
                         borderData: FlBorderData(show: false),
                         gridData: const FlGridData(show: false),
@@ -169,20 +178,14 @@ class DailyQuestionnaireChart extends HookWidget {
                               },
                             ),
                           ),
-                          leftTitles: AxisTitles(
+                          leftTitles: const AxisTitles(
                             sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                return const SizedBox.shrink();
-                              },
+                              showTitles: false,
                             ),
                           ),
-                          rightTitles: AxisTitles(
+                          rightTitles: const AxisTitles(
                             sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                return const SizedBox.shrink();
-                              },
+                              showTitles: false,
                             ),
                           ),
                         ),
@@ -293,7 +296,7 @@ class DailyQuestionnaireChart extends HookWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    DateFormat.Md().format(date),
+                    DateFormat.Md('sv').format(date),
                     style: const TextStyle(
                       color: CupertinoColors.systemGrey,
                       fontSize: 11,
@@ -304,33 +307,14 @@ class DailyQuestionnaireChart extends HookWidget {
             },
           ),
         ),
-        leftTitles: AxisTitles(
+        leftTitles: const AxisTitles(
           sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: (value, meta) {
-              return Text(
-                value.toInt().toString(),
-                style: const TextStyle(
-                  color: CupertinoColors.systemGrey,
-                  fontSize: 11,
-                ),
-              );
-            },
+            showTitles: false,
           ),
         ),
-        rightTitles: AxisTitles(
+        rightTitles: const AxisTitles(
           sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: (value, meta) {
-              return Text(
-                value.toInt().toString(),
-                textAlign: TextAlign.right,
-                style: const TextStyle(
-                  color: CupertinoColors.systemGrey,
-                  fontSize: 11,
-                ),
-              );
-            },
+            showTitles: false,
           ),
         ),
       );

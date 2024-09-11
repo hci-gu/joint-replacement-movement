@@ -1,10 +1,9 @@
 import 'package:fracture_movement/screens/questionnaire/classes.dart';
 import 'package:fracture_movement/screens/questionnaire/state.dart';
-import 'package:fracture_movement/storage.dart';
 import 'package:pocketbase/pocketbase.dart';
 
-final pb = PocketBase('https://fracture-puff-api.prod.appadem.in');
-// final pb = PocketBase('http://192.168.0.33:8090');
+// final pb = PocketBase('https://fracture-puff-api.prod.appadem.in');
+final pb = PocketBase('http://192.168.0.33:8090');
 
 Future<List<Questionnaire>> getQuestionnaires([String filter = '']) async {
   final res = await pb
@@ -55,10 +54,11 @@ Future<DateTime?> getEventDate() async {
 
 Future<DateTime?> getLastStepData() async {
   final res =
-      await pb.collection('steps').getList(sort: '-date_to', perPage: 1);
+      await pb.collection('dataUploads').getList(sort: '-dataTo', perPage: 1);
 
   if (res.items.isNotEmpty) {
-    return DateTime.parse(res.items.first.data['date_to']);
+    DateTime date = DateTime.parse(res.items.first.data['dataTo']);
+    return date;
   }
 
   return null;

@@ -90,7 +90,6 @@ final chartDataProvider = FutureProvider<ChartData>((ref) async {
     return ChartData([], DateTime.now());
   }
 
-  // DateTime eventDate = DateTime.now().subtract(Duration(days: 30));
   DisplayMode displayMode = ref.watch(displayModeProvider);
 
   List<HealthDataPoint> stepData = await ref.watch(stepDataProvider.future);
@@ -128,30 +127,17 @@ final chartDataProvider = FutureProvider<ChartData>((ref) async {
     dayMap[date]!.add(point);
   }
 
-  DataPoint eventPoint = DataPoint(eventDate, 0);
-
   List<DataPoint> dayPoints = dayMap.entries.map((e) {
     double sum = e.value.map((e) => e.value).reduce((value, element) {
       return value + element;
     });
-
-    if (isSameDay(e.key, eventDate)) {
-      eventPoint = DataPoint(e.key, sum);
-    }
     return DataPoint(e.key, sum);
   }).toList();
 
   List<DataPoint> points = groupDataPointsByDate(dayPoints, displayMode);
+  points.sort((a, b) => a.date.compareTo(b.date));
 
-  List<DataPoint> pointsBefore =
-      points.where((element) => element.date.isBefore(eventDate)).toList();
-  List<DataPoint> pointsAfter =
-      points.where((element) => element.date.isAfter(eventDate)).toList();
-
-  List<DataPoint> dataToShow = [...pointsBefore, eventPoint, ...pointsAfter];
-  dataToShow.sort((a, b) => a.date.compareTo(b.date));
-
-  return ChartData(dataToShow, eventDate);
+  return ChartData(points, eventDate);
 });
 
 final averageStepsBeforeProvider = FutureProvider<double>((ref) async {
@@ -184,14 +170,13 @@ class ChartData {
 
   List<DataPoint> get pointsBefore => points
       .where((element) =>
-          eventDate.isAfter(element.date) ||
-          eventDate.isAtSameMomentAs(element.date))
+          eventDate.isAfter(element.date) || isSameDay(eventDate, element.date))
       .toList();
 
   List<DataPoint> get pointsAfter => points
       .where((element) =>
           eventDate.isBefore(element.date) ||
-          eventDate.isAtSameMomentAs(element.date))
+          isSameDay(eventDate, element.date))
       .toList();
 }
 

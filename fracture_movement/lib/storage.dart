@@ -49,6 +49,16 @@ class Storage {
     return prefs.remove('eventDate');
   }
 
+  Future storeAppChoice(String choice) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    prefs.setString('appChoice', choice);
+  }
+
+  String? getAppChoice() {
+    return prefs.getString('appChoice');
+  }
+
   static final Storage _instance = Storage._internal();
   factory Storage() {
     return _instance;

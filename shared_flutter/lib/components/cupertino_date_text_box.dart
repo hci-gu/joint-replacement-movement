@@ -94,7 +94,7 @@ class _CupertinoDateTextBoxState extends State<CupertinoDateTextBox> {
     String fieldText;
     Color textColor;
     if (_currentDate != null) {
-      final formatter = DateFormat.yMd();
+      final formatter = DateFormat.yMd('sv');
       fieldText = formatter.format(_currentDate!);
       textColor = widget.color;
     } else {
