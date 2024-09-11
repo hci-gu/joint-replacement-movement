@@ -2,4 +2,5 @@ deploy/secrets.yaml
 pocketbase/pb_data
 pocketbase/app
 pocketbase/cert
+pocketbase/storage
 **/.DS_Store
